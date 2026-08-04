@@ -110,7 +110,7 @@ namespace Bird.InGame
         /// 논리적인 2D Grid 인덱스를 Unity World 좌표(Transform)로 변환합니다.
         /// 표현식 본문 멤버(=>)를 사용하여 코드를 간결하게 유지합니다.
         /// </summary>
-        public Vector2 GetWorldPosition(int row, int col) => new Vector2(col * cellSize, -row * cellSize);
+        public Vector2 GetWorldPosition(int row, int col) => new Vector2(col * cellSize - 1, -row * cellSize + 6);
 
         /// <summary>
         /// 공이 특정 위치에 도달했을 때, 해당 World 좌표를 Grid 인덱스로 역산합니다.
