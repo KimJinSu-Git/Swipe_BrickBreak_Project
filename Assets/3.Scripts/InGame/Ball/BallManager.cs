@@ -19,8 +19,11 @@ namespace Bird.Ball
         [SerializeField] private int delayBetweenBallsMs = 100;
         
         private Queue<GameObject> ballPool = new Queue<GameObject>();
+        private List<GameObject> activeBalls =  new List<GameObject>();
         
         private Transform managerTransform;
+
+        public event Action OnAllBallsReturned;
 
         private void Awake()
         {
@@ -59,10 +62,14 @@ namespace Bird.Ball
 
         public async Task FireBallsAsync(Vector2 spawnPosition, Vector2 direction)
         {
+            activeBalls.Clear();
+            
             for (int i = 0; i < currentBallCount; i++)
             {
                 GameObject ball = GetBall();
                 ball.transform.position = spawnPosition;
+                
+                activeBalls.Add(ball);
                 
                 if (ball.TryGetComponent(out Rigidbody2D rb))
                 {
@@ -73,6 +80,33 @@ namespace Bird.Ball
             }
             
             Debug.Log($"{currentBallCount} 개의 공 발사 완료");
+        }
+
+        /// <summary>
+        /// 바닥에 닿은 공을 하나씩 회수합니다.
+        /// </summary>
+        public void RetrieveBall(GameObject ball)
+        {
+            if (!activeBalls.Contains(ball)) return;
+
+            ReturnBall(ball);
+            activeBalls.Remove(ball);
+            
+            if (activeBalls.Count == 0) OnAllBallsReturned?.Invoke();
+        }
+
+        /// <summary>
+        /// 회수 버튼 클릭 시 호출되어 모든 공을 즉시 강제 회수합니다.
+        /// </summary>
+        public void ForceRetrieveAllActiveBalls()
+        {
+            foreach (var ball in activeBalls)
+            {
+                ReturnBall(ball);
+            }
+            activeBalls.Clear();
+            
+            OnAllBallsReturned?.Invoke();
         }
     }
 }

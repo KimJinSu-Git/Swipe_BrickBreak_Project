@@ -19,6 +19,7 @@ namespace Bird.Core
         [SerializeField] private GameState currentState;
         [SerializeField] private TrajectoryRenderer trajectoryRenderer;
         [SerializeField] private BallManager ballManager;
+        [SerializeField] private BlockManager blockManager;
 
         private Vector2 dragStartPosition;
         private Vector2 currentAimDirection;
@@ -27,6 +28,29 @@ namespace Bird.Core
         public GameState CurrentState => currentState;
 
         private void Awake() => ChangeState(GameState.Idle);
+
+        private void Start()
+        {
+            ballManager.OnAllBallsReturned += OnTurnEndReady;
+        }
+
+        private void OnDestroy()
+        {
+            if (ballManager != null) ballManager.OnAllBallsReturned -= OnTurnEndReady;
+        }
+        
+        /// <summary>
+        /// ReturnZone에서 호출하여 다음 턴의 발사 위치(X좌표)를 갱신합니다.
+        /// </summary>
+        public void UpdateSpawnPositionX(float newX) => ballSpawnPosition.x = newX;
+        
+        private void OnTurnEndReady()
+        {
+            if (currentState == GameState.Shooting)
+            {
+                ChangeState(GameState.TurnEnd);
+            }
+        }
 
         /// <summary>
         /// 상태를 안전하게 전환하고, 진입 시 필요한 1회성 로직을 실행합니다.
@@ -66,9 +90,31 @@ namespace Bird.Core
             // BallManager의 비동기 순차 발사 메서드
             // 반환되는 Task를 따로 기다리지(await) 않고 Fire & Forget 방식으로 실행합니다.
             _ = ballManager.FireBallsAsync(ballSpawnPosition, currentAimDirection);
-        } 
-        private void OnEnterTurnEnd() => Debug.Log("🛠턴 종료: 공 회수 확인 및 블록 하강");
-        private void OnEnterGameOverCheck() => Debug.Log("게임 오버 체크: 데드라인 도달 여부 확인");
+        }
+
+        private async void OnEnterTurnEnd()
+        {
+            Debug.Log("턴 종료: 공 회수 확인 및 블록 하강");
+            
+            await blockManager.MoveBlocksDownAsync();
+            
+            ChangeState(GameState.GameOverCheck);
+        }
+        private void OnEnterGameOverCheck()
+        {
+            Debug.Log("게임 오버 체크: 데드라인 도달 여부 확인");
+            
+            // 블록이 바닥에 닿았는지 검사합니다.[cite: 8]
+            if (blockManager.IsGameOverFlag)
+            {
+                Debug.Log("게임 오버!");
+                // TODO: 팝업 UI 재시작 버튼 연동
+            }
+            else
+            {
+                ChangeState(GameState.Idle);
+            }
+        }
 
         private void Update()
         {
@@ -119,6 +165,17 @@ namespace Bird.Core
             {
                 ChangeState(GameState.Shooting);
             }
+        }
+        
+        /// <summary>
+        /// UI 버튼의 OnClick 이벤트에 연결될 함수입니다.
+        /// </summary>
+        public void OnSkipButtonClicked()
+        {
+            if (currentState != GameState.Shooting) return;
+            
+            Debug.Log("회수 버튼 클릭: 모든 공 강제 회수!");
+            ballManager.ForceRetrieveAllActiveBalls(); 
         }
     }
 }

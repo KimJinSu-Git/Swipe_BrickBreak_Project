@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Bird.InGame
 {
@@ -18,6 +19,8 @@ namespace Bird.InGame
 
         private Queue<GameObject> blockPool = new Queue<GameObject>();
         private GameObject[,] blockGrid;
+        
+        public bool IsGameOverFlag { get; private set; }
 
         private void Awake()
         {
@@ -92,23 +95,57 @@ namespace Bird.InGame
         }
         
         // -- Async 기반 블록 하강 로직 --
+        /// <summary>
+        /// TurnEnd 상태일 때 호출되며, 블록 하강 로직 처리 후 대기 시간으 ㄹ가집니다.
+        /// </summary>
         public async Task MoveBlocksDownAsync()
         {
             ShiftGridDataDown();
+            SpawnNewRow();
 
             await Task.Delay(300);
-            
             Debug.Log("블록 하강 및 신규 스폰 완료");
         }
 
         private void ShiftGridDataDown()
         {
-            // TODO :: 2차원 배열(blockGrid)의 데이터를 밑으로 한 칸씩 이동시키고, 바닥에 닿은 블록이 있는지 검사하는 로직 추가 예정
+            IsGameOverFlag = false;
+            for (int row = maxRows - 2; row >= 0; row--)
+            {
+                for (int col = 0; col < maxColumns; col++)
+                {
+                    GameObject block = blockGrid[row, col];
+                    if (block != null)
+                    {
+                        // 다음 칸(row + 1)이 맨 바닥(데드라인)이라면 게임 오버 플래그 작동
+                        if (row + 1 == maxRows - 1) IsGameOverFlag = true; 
+
+                        // 배열 데이터 이동
+                        blockGrid[row + 1, col] = block;
+                        blockGrid[row, col] = null;
+
+                        // World 좌표 이동
+                        block.transform.position = GetWorldPosition(row + 1, col);
+                    }
+                }
+            }
+        }
+
+        private void SpawnNewRow()
+        {
+            // 맨 윗줄에 임시로 블록을 무작위 생성합니다.
+            // TODO :: 추후 DifficultyData를 연동하여 체력 효과 적용
+            for (int col = 0; col < maxColumns; col++)
+            {
+                if (Random.value < 0.3f)
+                {
+                    SpawnTestBlock(0, col, 10);
+                }
+            }
         }
         
         /// <summary>
         /// 논리적인 2D Grid 인덱스를 Unity World 좌표(Transform)로 변환합니다.
-        /// 표현식 본문 멤버(=>)를 사용하여 코드를 간결하게 유지합니다.
         /// </summary>
         public Vector2 GetWorldPosition(int row, int col) => new Vector2(col * cellSize - 1, -row * cellSize + 6);
 
