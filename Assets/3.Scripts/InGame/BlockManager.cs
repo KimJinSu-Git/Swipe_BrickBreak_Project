@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Bird.Core;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -8,14 +9,23 @@ namespace Bird.InGame
 {
     public class BlockManager : MonoBehaviour
     {
+        [Header("Managers")]
+        [SerializeField] private ScoreManager scoreManager;
+        
         [Header("Grid Settings")] 
-        [SerializeField] private int maxRows = 10;
-        [SerializeField] private int maxColumns = 7;
-        [SerializeField] private float cellSize = 1.0f;
+        [SerializeField] private int maxRows = 7; // 세로 개수
+        [SerializeField] private int maxColumns = 7; // 가로 개수
+        
+        [Header("Coordinate Settings")]
+        [SerializeField] private Vector2 topLeftPosition = new Vector2(-1.8f, 2.75f);
+        [SerializeField] private Vector2 bottomRightPosition = new Vector2(1.8f, -2.75f);
 
         [Header("Polling Settings")]
         [SerializeField] private GameObject blockPrefab;
         [SerializeField] private int initialPoolSize = 30;
+
+        private float cellSpacingX;
+        private float cellSpacingY;
 
         private Queue<GameObject> blockPool = new Queue<GameObject>();
         private GameObject[,] blockGrid;
@@ -24,13 +34,19 @@ namespace Bird.InGame
 
         private void Awake()
         {
+            CalculateCellSpacing();
             InitializeGrid();
             InitializePool();
         }
-
-        private void Start()
+        
+        /// <summary>
+        /// 설정된 좌상단/우하단 좌표를 바탕으로 블록 간의 정확한 간격을 자동 계산합니다.
+        /// </summary>
+        private void CalculateCellSpacing()
         {
-            SpawnTestBlock(3, 0, 10);
+            // 칸과 칸 사이의 틈 개수는 전체 칸 수보다 1개 적습니다.
+            cellSpacingX = (bottomRightPosition.x - topLeftPosition.x) / (maxColumns - 1);
+            cellSpacingY = (topLeftPosition.y - bottomRightPosition.y) / (maxRows - 1);
         }
 
         /// <summary>
@@ -69,14 +85,20 @@ namespace Bird.InGame
             GameObject targetBlockObj = blockGrid[gridIndex.y, gridIndex.x];
             if (targetBlockObj == null || !targetBlockObj.activeInHierarchy) return;
             
-            // 현재는 테스트를 위해 GetComponent를 사용합니다.
-            Block targetBlock = targetBlockObj.GetComponent<Block>();
-            
-            if (targetBlock != null)
+            if (targetBlockObj.TryGetComponent(out Block targetBlock))
             {
                 int earnedScore = targetBlock.TakeDamage(damage);
-                // TODO: ScoreManager에 earnedScore 전달하여 점수 증가 처리
-                Debug.Log($"인덱스 [{gridIndex.x}, {gridIndex.y}] 타격! 획득 점수: {earnedScore}");
+                bool isDestroyed = targetBlock.CurrentHp <= 0;
+
+                if (isDestroyed)
+                {
+                    blockGrid[gridIndex.y, gridIndex.x] = null;
+                }
+
+                if (scoreManager != null)
+                {
+                    scoreManager.AddScore(earnedScore, isDestroyed);
+                }
             }
         }
         
@@ -137,26 +159,30 @@ namespace Bird.InGame
             // TODO :: 추후 DifficultyData를 연동하여 체력 효과 적용
             for (int col = 0; col < maxColumns; col++)
             {
-                if (Random.value < 0.3f)
+                if (Random.value < 1f)
                 {
                     SpawnTestBlock(0, col, 10);
                 }
             }
         }
-        
+
         /// <summary>
         /// 논리적인 2D Grid 인덱스를 Unity World 좌표(Transform)로 변환합니다.
         /// </summary>
-        public Vector2 GetWorldPosition(int row, int col) => new Vector2(col * cellSize - 1, -row * cellSize + 6);
+        public Vector2 GetWorldPosition(int row, int col)
+        {
+            float xPos = topLeftPosition.x + (col * cellSpacingX);
+            float yPos = topLeftPosition.y - (row * cellSpacingY);
+            return new Vector2(xPos, yPos);
+        }
 
         /// <summary>
-        /// 공이 특정 위치에 도달했을 때, 해당 World 좌표를 Grid 인덱스로 역산합니다.
-        /// 이 메서드를 통해 Physics2D.Overlap 등 무거운 물리 연산을 대체합니다.
+        /// 무거운 물리 연산을 대체하기 위해 World 좌표를 Grid 인덱스로 역산합니다.
         /// </summary>
         public Vector2Int GetGridIndex(Vector2 worldPosition)
         {
-            int col = Mathf.RoundToInt(worldPosition.x / cellSize);
-            int row = Mathf.RoundToInt(-worldPosition.y / cellSize);
+            int col = Mathf.RoundToInt((worldPosition.x - topLeftPosition.x) / cellSpacingX);
+            int row = Mathf.RoundToInt((topLeftPosition.y - worldPosition.y) / cellSpacingY);
 
             col = Mathf.Clamp(col, 0, maxColumns - 1);
             row = Mathf.Clamp(row, 0, maxRows - 1);
