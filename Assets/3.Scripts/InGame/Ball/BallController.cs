@@ -13,7 +13,7 @@ namespace Bird.Ball
 
         private void Start()
         {
-            currentAttackBehavior = new ExplosionAttack();
+            currentAttackBehavior = new NormalAttack();
         }
 
         private void OnCollisionEnter2D(Collision2D collision)

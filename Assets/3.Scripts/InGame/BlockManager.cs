@@ -70,6 +70,19 @@ namespace Bird.InGame
             
             blockObj.transform.position = GetWorldPosition(row, col);
             
+            if (blockObj.TryGetComponent(out SpriteRenderer spriteRenderer))
+            {
+                // 원본 스프라이트의 실제 크기 측정
+                float originalWidth = spriteRenderer.sprite.bounds.size.x;
+                float originalHeight = spriteRenderer.sprite.bounds.size.y;
+
+                // 목표 간격(cellSpacing)에 맞추기 위한 배율 계산
+                float scaleX = cellSpacingX / originalWidth;
+                float scaleY = cellSpacingY / originalHeight;
+
+                blockObj.transform.localScale = new Vector3(scaleX, scaleY, 1f);
+            }
+            
             if (blockObj.TryGetComponent(out Block blockComponent))
             {
                 blockComponent.Initialize(hp);
@@ -132,6 +145,16 @@ namespace Bird.InGame
         private void ShiftGridDataDown()
         {
             IsGameOverFlag = false;
+            
+            for (int col = 0; col < maxColumns; col++)
+            {
+                if (blockGrid[maxRows - 1, col] != null)
+                {
+                    IsGameOverFlag = true; 
+                    return;
+                }
+            }
+            
             for (int row = maxRows - 2; row >= 0; row--)
             {
                 for (int col = 0; col < maxColumns; col++)
@@ -139,14 +162,9 @@ namespace Bird.InGame
                     GameObject block = blockGrid[row, col];
                     if (block != null)
                     {
-                        // 다음 칸(row + 1)이 맨 바닥(데드라인)이라면 게임 오버 플래그 작동
-                        if (row + 1 == maxRows - 1) IsGameOverFlag = true; 
-
-                        // 배열 데이터 이동
                         blockGrid[row + 1, col] = block;
                         blockGrid[row, col] = null;
-
-                        // World 좌표 이동
+                        
                         block.transform.position = GetWorldPosition(row + 1, col);
                     }
                 }

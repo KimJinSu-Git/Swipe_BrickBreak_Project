@@ -23,6 +23,8 @@ namespace Bird.Ball
         
         private Transform managerTransform;
 
+        private bool isFiring = false;
+
         public event Action OnAllBallsReturned;
 
         private void Awake()
@@ -63,12 +65,14 @@ namespace Bird.Ball
         public async Task FireBallsAsync(Vector2 spawnPosition, Vector2 direction)
         {
             activeBalls.Clear();
+            isFiring = true;
             
             for (int i = 0; i < currentBallCount; i++)
             {
+                if (!isFiring) break;
+                
                 GameObject ball = GetBall();
                 ball.transform.position = spawnPosition;
-                
                 activeBalls.Add(ball);
                 
                 if (ball.TryGetComponent(out Rigidbody2D rb))
@@ -79,6 +83,7 @@ namespace Bird.Ball
                 await Task.Delay(delayBetweenBallsMs);
             }
             
+            isFiring = false;
             Debug.Log($"{currentBallCount} 개의 공 발사 완료");
         }
 
@@ -100,6 +105,8 @@ namespace Bird.Ball
         /// </summary>
         public void ForceRetrieveAllActiveBalls()
         {
+            isFiring = false;
+            
             foreach (var ball in activeBalls)
             {
                 ReturnBall(ball);

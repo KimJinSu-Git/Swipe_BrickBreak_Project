@@ -2,6 +2,7 @@ using System;
 using Bird.Ball;
 using Bird.InGame;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Bird.Core
 {
@@ -130,6 +131,9 @@ namespace Bird.Core
         
         private void CheckDragStart()
         {
+            // 터치가 UI 위에 있다면 조작을 무시합니다
+            if (EventSystem.current.IsPointerOverGameObject()) return;
+            
             if (Input.GetMouseButtonDown(0))
             {
                 dragStartPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -145,7 +149,7 @@ namespace Bird.Core
                 
                 // 드래그 벡터 계산 (시작점 - 현재점 = 당긴 반대 방향)
                 Vector2 direction = dragStartPosition - currentDragPosition;
-                // ⚠터치 직후 0으로 나누기가 발생하는 것을 방지하는 방어 코드
+                // 터치 직후 0으로 나누기가 발생하는 것을 방지하는 방어 코드
                 if (direction.sqrMagnitude < 0.01f) return; 
                 direction.Normalize();
 
@@ -153,7 +157,6 @@ namespace Bird.Core
                 // Mathf.Atan2를 사용하여 현재 방향을 각도(-180도 ~ 180도)로 변환합니다.
                 float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
                 // 공이 아래로 향하거나(음수 각도), 너무 평행하게 누워서 무한 바운스 되는 것을 방지합니다.
-                // 15도 ~ 165도 사이로 각도를 통제합니다.
                 angle = Mathf.Clamp(angle, 15f, 165f);
                 
                 // 통제된 각도를 다시 삼각함수를 통해 방향(Vector2)으로 조립합니다.

@@ -182,8 +182,8 @@ MonoBehaviour:
   scoreManager: {fileID: 883871569}
   maxRows: 7
   maxColumns: 7
-  topLeftPosition: {x: -1.8, y: 2.75}
-  bottomRightPosition: {x: 1.8, y: -2.75}
+  topLeftPosition: {x: -1.9, y: 1.05}
+  bottomRightPosition: {x: 1.9, y: -2.75}
   blockPrefab: {fileID: 2127485777863446611, guid: 8ecacb96d754fc14599ead1dfe77b1b9, type: 3}
   initialPoolSize: 30
 --- !u!4 &220523036
@@ -1239,8 +1239,8 @@ Transform:
   m_GameObject: {fileID: 1430609534}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 2.3, y: 0, z: 0}
-  m_LocalScale: {x: 7.1, y: 0.10000001, z: 1}
+  m_LocalPosition: {x: 2.3, y: -0.75, z: 0}
+  m_LocalScale: {x: 5.5, y: 0.10000001, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 586470292}
@@ -1558,7 +1558,7 @@ Transform:
   m_GameObject: {fileID: 1572720884}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 3.5, z: 0}
+  m_LocalPosition: {x: 0, y: 2, z: 0}
   m_LocalScale: {x: 4.7, y: 0.1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1990,8 +1990,8 @@ Transform:
   m_GameObject: {fileID: 2111152166}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: -2.3, y: 0, z: 0}
-  m_LocalScale: {x: 7.1, y: 0.10000001, z: 1}
+  m_LocalPosition: {x: -2.3, y: -0.75, z: 0}
+  m_LocalScale: {x: 5.5, y: 0.10000001, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 586470292}
