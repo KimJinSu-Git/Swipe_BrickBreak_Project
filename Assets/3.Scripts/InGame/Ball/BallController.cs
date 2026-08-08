@@ -13,7 +13,7 @@ namespace Bird.Ball
 
         private void Start()
         {
-            currentAttackBehavior = new NormalAttack();
+            currentAttackBehavior = new CrossAttack();
         }
 
         private void OnCollisionEnter2D(Collision2D collision)

@@ -14,7 +14,7 @@ namespace Bird.Ball
         [SerializeField] private BlockManager blockManager;
 
         [Header("Shooting Settings")] 
-        [SerializeField] private int currentBallCount = 3;
+        [SerializeField] private int currentBallCount = 1;
         [SerializeField] private float ballSpeed = 10f;
         [SerializeField] private int delayBetweenBallsMs = 100;
         

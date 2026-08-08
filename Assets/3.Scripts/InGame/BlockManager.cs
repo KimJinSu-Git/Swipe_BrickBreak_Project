@@ -23,20 +23,27 @@ namespace Bird.InGame
         [Header("Polling Settings")]
         [SerializeField] private GameObject blockPrefab;
         [SerializeField] private int initialPoolSize = 30;
+        
+        [Header("Data")]
+        [SerializeField] private DifficultyData difficultyData;
 
         private float cellSpacingX;
         private float cellSpacingY;
 
         private Queue<GameObject> blockPool = new Queue<GameObject>();
         private GameObject[,] blockGrid;
+        private List<int> availableColumns = new List<int>();
         
         public bool IsGameOverFlag { get; private set; }
+        
+        public int MaxColumns => maxColumns;
 
         private void Awake()
         {
             CalculateCellSpacing();
             InitializeGrid();
             InitializePool();
+            _ = MoveBlocksDownAsync(1);
         }
         
         /// <summary>
@@ -64,7 +71,7 @@ namespace Bird.InGame
             }
         }
 
-        public void SpawnTestBlock(int row, int col, int hp)
+        private void SpawnTestBlock(int row, int col, int hp)
         {
             GameObject blockObj = GetBlockFormPool();
             
@@ -133,13 +140,12 @@ namespace Bird.InGame
         /// <summary>
         /// TurnEnd 상태일 때 호출되며, 블록 하강 로직 처리 후 대기 시간으 ㄹ가집니다.
         /// </summary>
-        public async Task MoveBlocksDownAsync()
+        public async Task MoveBlocksDownAsync(int currentTurn)
         {
             ShiftGridDataDown();
-            SpawnNewRow();
+            SpawnNewRow(currentTurn);
 
             await Task.Delay(300);
-            Debug.Log("블록 하강 및 신규 스폰 완료");
         }
 
         private void ShiftGridDataDown()
@@ -171,16 +177,30 @@ namespace Bird.InGame
             }
         }
 
-        private void SpawnNewRow()
+        private void SpawnNewRow(int currentTurn)
         {
-            // 맨 윗줄에 임시로 블록을 무작위 생성합니다.
-            // TODO :: 추후 DifficultyData를 연동하여 체력 효과 적용
-            for (int col = 0; col < maxColumns; col++)
+            if (difficultyData == null || IsGameOverFlag) return;
+            
+            DifficultyStage currentStage = difficultyData.GetStageData(currentTurn);
+            
+            int targetSpawnCount = Random.Range(currentStage.minSpawnCount, currentStage.maxSpawnCount + 1);
+            
+            availableColumns.Clear();
+            for (int i = 0; i < maxColumns; i++)
             {
-                if (Random.value < 1f)
-                {
-                    SpawnTestBlock(0, col, 10);
-                }
+                availableColumns.Add(i);
+            }
+            
+            for (int i = 0; i < targetSpawnCount; i++)
+            {
+                int randomIndex = Random.Range(0, availableColumns.Count);
+                int selectedCol = availableColumns[randomIndex];
+
+                availableColumns.RemoveAt(randomIndex);
+
+                // 랜덤 HP 부여
+                int randomHp = Random.Range(currentStage.minHp, currentStage.maxHp + 1);
+                SpawnTestBlock(0, selectedCol, randomHp);
             }
         }
 

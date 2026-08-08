@@ -22,6 +22,8 @@ namespace Bird.Core
         [SerializeField] private BallManager ballManager;
         [SerializeField] private BlockManager blockManager;
 
+        [SerializeField] private int currentTurn = 1;
+
         private Vector2 dragStartPosition;
         private Vector2 currentAimDirection;
 
@@ -96,8 +98,9 @@ namespace Bird.Core
         private async void OnEnterTurnEnd()
         {
             Debug.Log("턴 종료: 공 회수 확인 및 블록 하강");
-            
-            await blockManager.MoveBlocksDownAsync();
+
+            currentTurn++;
+            await blockManager.MoveBlocksDownAsync(currentTurn);
             
             ChangeState(GameState.GameOverCheck);
         }
