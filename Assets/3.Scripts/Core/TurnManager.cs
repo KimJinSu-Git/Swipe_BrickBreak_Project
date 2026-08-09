@@ -134,14 +134,27 @@ namespace Bird.Core
         
         private void CheckDragStart()
         {
-            // 터치가 UI 위에 있다면 조작을 무시합니다
-            if (EventSystem.current.IsPointerOverGameObject()) return;
+            if (IsPointerOverUI()) return;
             
             if (Input.GetMouseButtonDown(0))
             {
                 dragStartPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 ChangeState(GameState.Aiming);
             }
+        }
+
+        private bool IsPointerOverUI()
+        {
+            if (Input.touchCount > 0)
+            {
+                Touch touch = Input.GetTouch(0);
+                if (touch.phase == TouchPhase.Began)
+                {
+                    return EventSystem.current.IsPointerOverGameObject(touch.fingerId);
+                }
+            }
+            
+            return EventSystem.current.IsPointerOverGameObject();
         }
 
         private void UpdateAiming()
