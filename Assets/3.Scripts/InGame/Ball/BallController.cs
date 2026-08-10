@@ -11,10 +11,7 @@ namespace Bird.Ball
         
         public void SetBlockManager(BlockManager manager) => blockManager = manager;
 
-        private void Start()
-        {
-            currentAttackBehavior = new NormalAttack();
-        }
+        public void SetAttackBehavior(IAttackBehaviour behaviour) => currentAttackBehavior = behaviour;
 
         private void OnCollisionEnter2D(Collision2D collision)
         {

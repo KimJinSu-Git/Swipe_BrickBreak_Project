@@ -922,6 +922,7 @@ MonoBehaviour:
   currentBallCount: 1
   ballSpeed: 10
   delayBetweenBallsMs: 50
+  playerDeck: 
 --- !u!1 &978825109
 GameObject:
   m_ObjectHideFlags: 0
@@ -1744,6 +1745,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gachaData: {fileID: 11400000, guid: 64cc241ac7016f649a79fe5b1ba5fb0d, type: 2}
   coinManager: {fileID: 767881835}
+  ballManager: {fileID: 927275072}
   pullCount: 0
 --- !u!1 &1430609534
 GameObject:

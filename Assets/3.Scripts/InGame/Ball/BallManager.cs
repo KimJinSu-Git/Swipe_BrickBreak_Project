@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bird.InGame;
+using Bird.OutGame;
 using UnityEngine;
 
 namespace Bird.Ball
@@ -18,6 +19,9 @@ namespace Bird.Ball
         [SerializeField] private float ballSpeed = 10f;
         [SerializeField] private int delayBetweenBallsMs = 100;
         
+        [Header("Player Deck")]
+        [SerializeField] private List<BallType> playerDeck = new List<BallType>();
+        
         private Queue<GameObject> ballPool = new Queue<GameObject>();
         private List<GameObject> activeBalls =  new List<GameObject>();
         
@@ -31,6 +35,14 @@ namespace Bird.Ball
         {
             managerTransform = transform;
             InitializePool();
+        }
+
+        private void Start()
+        {
+            if (playerDeck.Count == 0)
+            {
+                playerDeck.Add(BallType.Normal);
+            }
         }
 
         private void InitializePool()
@@ -56,17 +68,45 @@ namespace Bird.Ball
             return ball;
         }
 
-        public void ReturnBall(GameObject ball)
+        private void ReturnBall(GameObject ball)
         {
             ball.SetActive(false);
             ballPool.Enqueue(ball);
+        }
+        
+        public void AddBallToDeck(BallType newBall)
+        {
+            playerDeck.Add(newBall);
+            Debug.Log($"덱에 추가됨: {newBall} (현재 총 공 개수: {playerDeck.Count})");
         }
 
         public async Task FireBallsAsync(Vector2 spawnPosition, Vector2 direction)
         {
             activeBalls.Clear();
             isFiring = true;
-            
+
+            foreach (BallType ballType in playerDeck)
+            {
+                if (!isFiring) break;
+
+                GameObject ball = GetBall();
+                ball.transform.position = spawnPosition;
+                activeBalls.Add(ball);
+
+                if (ball.TryGetComponent(out BallController ballController))
+                {
+                    IAttackBehaviour attackBehavior = GetAttackBehavior(ballType);
+                    ballController.SetAttackBehavior(attackBehavior);
+                }
+
+                if (ball.TryGetComponent(out Rigidbody2D rb))
+                {
+                    rb.linearVelocity = direction * ballSpeed;
+                }
+
+                await Task.Delay(delayBetweenBallsMs);
+            }
+            /*
             for (int i = 0; i < currentBallCount; i++)
             {
                 if (!isFiring) break;
@@ -82,10 +122,19 @@ namespace Bird.Ball
 
                 await Task.Delay(delayBetweenBallsMs);
             }
-            
+            */
             isFiring = false;
             Debug.Log($"{currentBallCount} 개의 공 발사 완료");
         }
+
+        private IAttackBehaviour GetAttackBehavior(BallType type) => type switch
+        {
+            BallType.Normal => new NormalAttack(),
+            BallType.Explosion => new ExplosionAttack(),
+            BallType.Cross => new CrossAttack(),
+            BallType.Laser => new LaserAttack(),
+            _ => new NormalAttack()
+        };
 
         /// <summary>
         /// 바닥에 닿은 공을 하나씩 회수합니다.

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Bird.Ball;
 using Bird.Core;
 using UnityEngine;
 
@@ -8,6 +9,7 @@ namespace Bird.OutGame
     {
         [SerializeField] private GachaData gachaData;
         [SerializeField] private CoinManager coinManager;
+        [SerializeField] private BallManager ballManager;
 
         [Header("Pity System")] 
         [SerializeField] private int pullCount = 0;
@@ -20,6 +22,9 @@ namespace Bird.OutGame
             if (coinManager.TrySpendCoins(gachaData.singlePullCost))
             {
                 BallType result = ExecuteGacha();
+                
+                if(ballManager != null) ballManager.AddBallToDeck(result);
+                
                 Debug.Log($"1회 뽑기 성공! 결과: {result} (현재 누적 뽑기: {pullCount})");
             }
             else
@@ -39,6 +44,9 @@ namespace Bird.OutGame
                 for (int i = 0; i < 5; i++)
                 {
                     BallType result = ExecuteGacha();
+                    
+                    if(ballManager != null) ballManager.AddBallToDeck(result);
+                    
                     Debug.Log($"   [{i+1}번째] 결과: {result}");
                 }
                 // TODO :: 5개의 공을 팝업 UI에 표시
