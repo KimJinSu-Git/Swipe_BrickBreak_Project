@@ -7,7 +7,6 @@ namespace Bird.Core
     public class ScoreManager : MonoBehaviour
     {
         [SerializeField] private int currentScore;
-        [SerializeField] private TextMeshProUGUI currentScoreText;
         
         public event Action<int> OnScoreChanged;
         
@@ -15,12 +14,7 @@ namespace Bird.Core
 
         private void Start()
         {
-            UpdateScore(currentScore);
-        }
-
-        private void UpdateScore(int score)
-        {
-            currentScoreText.text = "Score : " + score;
+            OnScoreChanged?.Invoke(currentScore);
         }
 
         public void AddScore(int damage, bool isDestroyed)
@@ -34,7 +28,6 @@ namespace Bird.Core
             }
             
             currentScore += earnedScore;
-            UpdateScore(currentScore);
             
             OnScoreChanged?.Invoke(currentScore);
         }

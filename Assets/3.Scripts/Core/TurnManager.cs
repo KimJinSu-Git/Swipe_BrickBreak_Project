@@ -23,11 +23,14 @@ namespace Bird.Core
         [SerializeField] private BlockManager blockManager;
 
         [SerializeField] private int currentTurn = 1;
+        
+        [Header("Spawn Settings")]
+        [SerializeField] private Vector2 ballSpawnPosition = new Vector2(0f, -3f);
 
         private Vector2 dragStartPosition;
         private Vector2 currentAimDirection;
-
-        private Vector2 ballSpawnPosition = new Vector2(0f, -3f);
+        
+        public event Action<int> OnTurnChanged;
         public GameState CurrentState => currentState;
 
         private void Awake() => ChangeState(GameState.Idle);
@@ -35,6 +38,7 @@ namespace Bird.Core
         private void Start()
         {
             ballManager.OnAllBallsReturned += OnTurnEndReady;
+            OnTurnChanged?.Invoke(currentTurn);
         }
 
         private void OnDestroy()
@@ -81,8 +85,12 @@ namespace Bird.Core
                     break;
             }
         }
-        
-        private void OnEnterIdle() => Debug.Log("대기 상태: 스와이프 및 스킬 사용 가능");
+
+        private void OnEnterIdle()
+        {
+            Debug.Log("대기 상태: 스와이프 및 스킬 사용 가능");
+            ballManager.ResetBallCountUI();
+        }
         private void OnEnterAiming() => Debug.Log("조준 상태: LineRenderer 예상 궤적 표시 시작");
 
         private void OnEnterShooting()
@@ -100,6 +108,8 @@ namespace Bird.Core
             Debug.Log("턴 종료: 공 회수 확인 및 블록 하강");
 
             currentTurn++;
+            OnTurnChanged?.Invoke(currentTurn);
+            
             await blockManager.MoveBlocksDownAsync(currentTurn);
             
             ChangeState(GameState.GameOverCheck);

@@ -11,6 +11,7 @@ namespace Bird.InGame
     {
         [Header("Managers")]
         [SerializeField] private ScoreManager scoreManager;
+        [SerializeField] private CoinManager coinManager;
         
         [Header("Grid Settings")] 
         [SerializeField] private int maxRows = 7; // 세로 개수
@@ -113,6 +114,10 @@ namespace Bird.InGame
                 if (isDestroyed)
                 {
                     blockGrid[gridIndex.y, gridIndex.x] = null;
+                    if (coinManager != null)
+                    {
+                        coinManager.AddCoins(20);
+                    }
                 }
 
                 if (scoreManager != null)

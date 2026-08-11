@@ -30,6 +30,7 @@ namespace Bird.Ball
         private bool isFiring = false;
 
         public event Action OnAllBallsReturned;
+        public event Action<int> OnBallCountChanged;
 
         private void Awake()
         {
@@ -44,6 +45,8 @@ namespace Bird.Ball
                 playerDeck.Add(BallType.Normal);
             }
         }
+        
+        public void ResetBallCountUI() => OnBallCountChanged?.Invoke(playerDeck.Count);
 
         private void InitializePool()
         {
@@ -84,6 +87,9 @@ namespace Bird.Ball
         {
             activeBalls.Clear();
             isFiring = true;
+            
+            int remainingBalls = playerDeck.Count;
+            OnBallCountChanged?.Invoke(remainingBalls);
 
             foreach (BallType ballType in playerDeck)
             {
@@ -104,6 +110,9 @@ namespace Bird.Ball
                     rb.linearVelocity = direction * ballSpeed;
                 }
 
+                remainingBalls--;
+                OnBallCountChanged?.Invoke(remainingBalls);
+                
                 await Task.Delay(delayBetweenBallsMs);
             }
             /*

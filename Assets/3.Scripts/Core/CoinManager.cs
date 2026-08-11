@@ -8,6 +8,8 @@ namespace Bird.Core
         [SerializeField] private int currentCoins = 0;
 
         public event Action<int> OnCoinChanged;
+        
+        private void Start() => OnCoinChanged?.Invoke(currentCoins);
 
         public bool TrySpendCoins(int amount)
         {

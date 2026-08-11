@@ -22,8 +22,13 @@ namespace Bird.OutGame
             if (coinManager.TrySpendCoins(gachaData.singlePullCost))
             {
                 BallType result = ExecuteGacha();
+
+                if (ballManager != null)
+                {
+                    ballManager.AddBallToDeck(result);
+                    ballManager.ResetBallCountUI();
+                }
                 
-                if(ballManager != null) ballManager.AddBallToDeck(result);
                 
                 Debug.Log($"1회 뽑기 성공! 결과: {result} (현재 누적 뽑기: {pullCount})");
             }
@@ -44,8 +49,12 @@ namespace Bird.OutGame
                 for (int i = 0; i < 5; i++)
                 {
                     BallType result = ExecuteGacha();
-                    
-                    if(ballManager != null) ballManager.AddBallToDeck(result);
+
+                    if (ballManager != null)
+                    {
+                        ballManager.AddBallToDeck(result);
+                        ballManager.ResetBallCountUI();
+                    }
                     
                     Debug.Log($"   [{i+1}번째] 결과: {result}");
                 }
