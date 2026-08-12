@@ -7,18 +7,28 @@ namespace Bird.OutGame
 {
     public class GachaManager : MonoBehaviour
     {
+        [Header("Manager Settings")]
         [SerializeField] private GachaData gachaData;
         [SerializeField] private CoinManager coinManager;
         [SerializeField] private BallManager ballManager;
+        [SerializeField] private TurnManager turnManager;
 
         [Header("Pity System")] 
         [SerializeField] private int pullCount = 0;
 
+        public event System.Action<List<BallType>> OnGachaCompleted;
+        
         /// <summary>
         /// 1회 뽑기 (50 코인)
         /// </summary>
         public void PullSingle()
         {
+            if (turnManager != null && turnManager.CurrentState != GameState.Idle)
+            {
+                Debug.LogWarning("현재 대기(Idle) 상태가 아니므로 가챠를 진행할 수 없습니다!");
+                return;
+            }
+            
             if (coinManager.TrySpendCoins(gachaData.singlePullCost))
             {
                 BallType result = ExecuteGacha();
@@ -29,8 +39,7 @@ namespace Bird.OutGame
                     ballManager.ResetBallCountUI();
                 }
                 
-                
-                Debug.Log($"1회 뽑기 성공! 결과: {result} (현재 누적 뽑기: {pullCount})");
+                OnGachaCompleted?.Invoke(new List<BallType> { result });
             }
             else
             {
@@ -43,9 +52,16 @@ namespace Bird.OutGame
         /// </summary>
         public void PullFive()
         {
+            if (turnManager != null && turnManager.CurrentState != GameState.Idle)
+            {
+                Debug.LogWarning("현재 대기(Idle) 상태가 아니므로 가챠를 진행할 수 없습니다!");
+                return;
+            }
+            
             if (coinManager.TrySpendCoins(gachaData.fivePullCost))
             {
-                Debug.Log("5회 뽑기 시작 !");
+                List<BallType> results = new List<BallType>();
+                
                 for (int i = 0; i < 5; i++)
                 {
                     BallType result = ExecuteGacha();
@@ -56,9 +72,10 @@ namespace Bird.OutGame
                         ballManager.ResetBallCountUI();
                     }
                     
-                    Debug.Log($"   [{i+1}번째] 결과: {result}");
+                    results.Add(result);
                 }
-                // TODO :: 5개의 공을 팝업 UI에 표시
+                
+                OnGachaCompleted?.Invoke(results);
             }
             else
             {

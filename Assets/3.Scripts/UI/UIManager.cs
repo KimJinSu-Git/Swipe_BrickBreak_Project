@@ -1,5 +1,6 @@
 using Bird.Ball;
 using Bird.Core;
+using Bird.OutGame;
 using TMPro;
 using UnityEngine;
 
@@ -19,12 +20,17 @@ namespace Bird.UI
         [SerializeField] private TextMeshProUGUI textBallCount;
         [SerializeField] private TextMeshProUGUI textScore;
         
+        [Header("UI Popups")] 
+        [SerializeField] private UIGachaPopup gachaPopup;
+        [SerializeField] private GachaManager gachaManager;
+        
         private void Start()
         {
             if (turnManager != null) turnManager.OnTurnChanged += UpdateTurnUI;
             if (coinManager != null) coinManager.OnCoinChanged += UpdateCoinUI;
             if (ballManager != null) ballManager.OnBallCountChanged += UpdateBallCountUI;
             if (scoreManager != null) scoreManager.OnScoreChanged += UpdateScoreUI;
+            if (gachaManager != null) gachaManager.OnGachaCompleted += gachaPopup.ShowResults;
         }
 
         private void OnDestroy()
@@ -33,6 +39,7 @@ namespace Bird.UI
             if (coinManager != null) coinManager.OnCoinChanged -= UpdateCoinUI;
             if (ballManager != null) ballManager.OnBallCountChanged -= UpdateBallCountUI;
             if (scoreManager != null) scoreManager.OnScoreChanged -= UpdateScoreUI;
+            if (gachaManager != null) gachaManager.OnGachaCompleted -= gachaPopup.ShowResults;
         }
 
         private void UpdateTurnUI(int turn) => textTurn.text = turn.ToString();
