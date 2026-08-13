@@ -27,8 +27,8 @@ namespace Bird.Core
         [Header("Spawn Settings")]
         [SerializeField] private Vector2 ballSpawnPosition = new Vector2(0f, -3f);
 
-        private Vector2 dragStartPosition;
-        private Vector2 currentAimDirection;
+        private Vector2 _dragStartPosition;
+        private Vector2 _currentAimDirection;
         
         public event Action<int> OnTurnChanged;
         public GameState CurrentState => currentState;
@@ -100,7 +100,7 @@ namespace Bird.Core
             
             // BallManager의 비동기 순차 발사 메서드
             // 반환되는 Task를 따로 기다리지(await) 않고 Fire & Forget 방식으로 실행합니다.
-            _ = ballManager.FireBallsAsync(ballSpawnPosition, currentAimDirection);
+            _ = ballManager.FireBallsAsync(ballSpawnPosition, _currentAimDirection);
         }
 
         private async void OnEnterTurnEnd()
@@ -150,7 +150,7 @@ namespace Bird.Core
             
             if (Input.GetMouseButtonDown(0))
             {
-                dragStartPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                _dragStartPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 ChangeState(GameState.Aiming);
             }
         }
@@ -176,7 +176,7 @@ namespace Bird.Core
                 Vector2 currentDragPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 
                 // 드래그 벡터 계산 (시작점 - 현재점 = 당긴 반대 방향)
-                Vector2 direction = dragStartPosition - currentDragPosition;
+                Vector2 direction = _dragStartPosition - currentDragPosition;
                 // 터치 직후 0으로 나누기가 발생하는 것을 방지하는 방어 코드
                 if (direction.sqrMagnitude < 0.01f) return; 
                 direction.Normalize();
@@ -188,9 +188,9 @@ namespace Bird.Core
                 angle = Mathf.Clamp(angle, 15f, 165f);
                 
                 // 통제된 각도를 다시 삼각함수를 통해 방향(Vector2)으로 조립합니다.
-                currentAimDirection = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
+                _currentAimDirection = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
                 trajectoryRenderer.ShowLine();
-                trajectoryRenderer.DrawTrajectory(ballSpawnPosition, currentAimDirection);
+                trajectoryRenderer.DrawTrajectory(ballSpawnPosition, _currentAimDirection);
             }
             else if (Input.GetMouseButtonUp(0))
             {

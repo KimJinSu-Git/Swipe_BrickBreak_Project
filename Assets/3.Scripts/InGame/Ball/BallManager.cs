@@ -22,19 +22,19 @@ namespace Bird.Ball
         [Header("Player Deck")]
         [SerializeField] private List<BallType> playerDeck = new List<BallType>();
         
-        private Queue<GameObject> ballPool = new Queue<GameObject>();
-        private List<GameObject> activeBalls =  new List<GameObject>();
+        private Queue<GameObject> _ballPool = new Queue<GameObject>();
+        private List<GameObject> _activeBalls =  new List<GameObject>();
         
-        private Transform managerTransform;
+        private Transform _managerTransform;
 
-        private bool isFiring = false;
+        private bool _isFiring = false;
 
         public event Action OnAllBallsReturned;
         public event Action<int> OnBallCountChanged;
 
         private void Awake()
         {
-            managerTransform = transform;
+            _managerTransform = transform;
             InitializePool();
         }
 
@@ -52,7 +52,7 @@ namespace Bird.Ball
         {
             for (int i = 0; i < initialBallCount; i++)
             {
-                GameObject newBall = Instantiate(ballPrefab, managerTransform);
+                GameObject newBall = Instantiate(ballPrefab, _managerTransform);
 
                 if (newBall.TryGetComponent(out BallController controller))
                 {
@@ -60,13 +60,13 @@ namespace Bird.Ball
                 }
                 
                 newBall.SetActive(false);
-                ballPool.Enqueue(newBall);
+                _ballPool.Enqueue(newBall);
             }
         }
 
         public GameObject GetBall()
         {
-            GameObject ball = ballPool.Count > 0 ? ballPool.Dequeue() : Instantiate(ballPrefab, managerTransform);
+            GameObject ball = _ballPool.Count > 0 ? _ballPool.Dequeue() : Instantiate(ballPrefab, _managerTransform);
             ball.SetActive(true);
             return ball;
         }
@@ -74,7 +74,7 @@ namespace Bird.Ball
         private void ReturnBall(GameObject ball)
         {
             ball.SetActive(false);
-            ballPool.Enqueue(ball);
+            _ballPool.Enqueue(ball);
         }
         
         public void AddBallToDeck(BallType newBall)
@@ -85,19 +85,19 @@ namespace Bird.Ball
 
         public async Task FireBallsAsync(Vector2 spawnPosition, Vector2 direction)
         {
-            activeBalls.Clear();
-            isFiring = true;
+            _activeBalls.Clear();
+            _isFiring = true;
             
             int remainingBalls = playerDeck.Count;
             OnBallCountChanged?.Invoke(remainingBalls);
 
             foreach (BallType ballType in playerDeck)
             {
-                if (!isFiring) break;
+                if (!_isFiring) break;
 
                 GameObject ball = GetBall();
                 ball.transform.position = spawnPosition;
-                activeBalls.Add(ball);
+                _activeBalls.Add(ball);
 
                 if (ball.TryGetComponent(out BallController ballController))
                 {
@@ -132,7 +132,7 @@ namespace Bird.Ball
                 await Task.Delay(delayBetweenBallsMs);
             }
             */
-            isFiring = false;
+            _isFiring = false;
             Debug.Log($"{currentBallCount} 개의 공 발사 완료");
         }
 
@@ -150,12 +150,12 @@ namespace Bird.Ball
         /// </summary>
         public void RetrieveBall(GameObject ball)
         {
-            if (!activeBalls.Contains(ball)) return;
+            if (!_activeBalls.Contains(ball)) return;
 
             ReturnBall(ball);
-            activeBalls.Remove(ball);
+            _activeBalls.Remove(ball);
             
-            if (activeBalls.Count == 0) OnAllBallsReturned?.Invoke();
+            if (_activeBalls.Count == 0) OnAllBallsReturned?.Invoke();
         }
 
         /// <summary>
@@ -163,13 +163,13 @@ namespace Bird.Ball
         /// </summary>
         public void ForceRetrieveAllActiveBalls()
         {
-            isFiring = false;
+            _isFiring = false;
             
-            foreach (var ball in activeBalls)
+            foreach (var ball in _activeBalls)
             {
                 ReturnBall(ball);
             }
-            activeBalls.Clear();
+            _activeBalls.Clear();
             
             OnAllBallsReturned?.Invoke();
         }

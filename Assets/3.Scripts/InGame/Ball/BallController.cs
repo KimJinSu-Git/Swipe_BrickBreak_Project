@@ -6,12 +6,12 @@ namespace Bird.Ball
 {
     public class BallController : MonoBehaviour
     {
-        private BlockManager blockManager;
-        private IAttackBehaviour currentAttackBehavior;
+        private BlockManager _blockManager;
+        private IAttackBehaviour _currentAttackBehavior;
         
-        public void SetBlockManager(BlockManager manager) => blockManager = manager;
+        public void SetBlockManager(BlockManager manager) => _blockManager = manager;
 
-        public void SetAttackBehavior(IAttackBehaviour behaviour) => currentAttackBehavior = behaviour;
+        public void SetAttackBehavior(IAttackBehaviour behaviour) => _currentAttackBehavior = behaviour;
 
         private void OnCollisionEnter2D(Collision2D collision)
         {
@@ -19,9 +19,9 @@ namespace Bird.Ball
             {
                 Vector2 hitPosition = collision.transform.position;
                 
-                Vector2Int gridIndex = blockManager.GetGridIndex(hitPosition);
+                Vector2Int gridIndex = _blockManager.GetGridIndex(hitPosition);
                 
-                currentAttackBehavior.ExecuteAttack(gridIndex, blockManager);
+                _currentAttackBehavior.ExecuteAttack(gridIndex, _blockManager);
             }
         }
     }

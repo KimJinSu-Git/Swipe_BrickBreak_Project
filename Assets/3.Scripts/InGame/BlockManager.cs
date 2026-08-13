@@ -31,12 +31,12 @@ namespace Bird.InGame
         [Header("Block Settings")] 
         [SerializeField] private int maxMultiplyPerRow = 1;
 
-        private float cellSpacingX;
-        private float cellSpacingY;
+        private float _cellSpacingX;
+        private float _cellSpacingY;
 
-        private Queue<GameObject> blockPool = new Queue<GameObject>();
-        private GameObject[,] blockGrid;
-        private List<int> availableColumns = new List<int>();
+        private Queue<GameObject> _blockPool = new Queue<GameObject>();
+        private GameObject[,] _blockGrid;
+        private List<int> _availableColumns = new List<int>();
         
         public bool IsGameOverFlag { get; private set; }
         
@@ -62,14 +62,14 @@ namespace Bird.InGame
         private void CalculateCellSpacing()
         {
             // 칸과 칸 사이의 틈 개수는 전체 칸 수보다 1개 적습니다.
-            cellSpacingX = (bottomRightPosition.x - topLeftPosition.x) / (maxColumns - 1);
-            cellSpacingY = (topLeftPosition.y - bottomRightPosition.y) / (maxRows - 1);
+            _cellSpacingX = (bottomRightPosition.x - topLeftPosition.x) / (maxColumns - 1);
+            _cellSpacingY = (topLeftPosition.y - bottomRightPosition.y) / (maxRows - 1);
         }
 
         /// <summary>
         /// 게임 시작 시 한 번 실행됩니다.
         /// </summary>
-        private void InitializeGrid() => blockGrid = new GameObject[maxRows, maxColumns];
+        private void InitializeGrid() => _blockGrid = new GameObject[maxRows, maxColumns];
 
         private void InitializePool()
         {
@@ -77,7 +77,7 @@ namespace Bird.InGame
             {
                 GameObject newBlock = Instantiate(blockPrefab, transform);
                 newBlock.SetActive(false);
-                blockPool.Enqueue(newBlock);
+                _blockPool.Enqueue(newBlock);
             }
         }
 
@@ -85,7 +85,7 @@ namespace Bird.InGame
         {
             if (gridIndex.x < 0 || gridIndex.x >= maxColumns || gridIndex.y < 0 || gridIndex.y >= maxRows) return;
             
-            GameObject targetBlockObj = blockGrid[gridIndex.y, gridIndex.x];
+            GameObject targetBlockObj = _blockGrid[gridIndex.y, gridIndex.x];
             if (targetBlockObj == null || !targetBlockObj.activeInHierarchy) return;
             
             if (targetBlockObj.TryGetComponent(out Block targetBlock))
@@ -95,7 +95,7 @@ namespace Bird.InGame
 
                 if (isDestroyed)
                 {
-                    blockGrid[gridIndex.y, gridIndex.x] = null;
+                    _blockGrid[gridIndex.y, gridIndex.x] = null;
                     if (coinManager != null)
                     {
                         coinManager.AddCoins(20);
@@ -120,8 +120,8 @@ namespace Bird.InGame
                 float originalWidth = spriteRenderer.sprite.bounds.size.x;
                 float originalHeight = spriteRenderer.sprite.bounds.size.y;
 
-                float scaleX = cellSpacingX / originalWidth;
-                float scaleY = cellSpacingY / originalHeight;
+                float scaleX = _cellSpacingX / originalWidth;
+                float scaleY = _cellSpacingY / originalHeight;
 
                 blockObj.transform.localScale = new Vector3(scaleX, scaleY, 1f);
             }
@@ -131,7 +131,7 @@ namespace Bird.InGame
                 blockComponent.Initialize(hp, this);
             }
             
-            blockGrid[row, col] = blockObj;
+            _blockGrid[row, col] = blockObj;
         }
         
         // -- Special Block 로직 --
@@ -144,7 +144,7 @@ namespace Bird.InGame
 
                 for (int col = 0; col < maxColumns; col++)
                 {
-                    GameObject blockObj = blockGrid[row, col];
+                    GameObject blockObj = _blockGrid[row, col];
                     if (blockObj != null && blockObj.activeInHierarchy)
                     {
                         if (blockObj.TryGetComponent(out Block block))
@@ -155,11 +155,32 @@ namespace Bird.InGame
                 }
             }
         }
+
+        /// <summary>
+        /// 맵 상에 활성화된 모든 블록의 체력을 회복시킵니다.
+        /// </summary>
+        public void HealAllBlocks(int healAmount)
+        {
+            for (int row = 0; row < maxRows; row++)
+            {
+                for (int col = 0; col < maxColumns; col++)
+                {
+                    GameObject blockObj = _blockGrid[row, col];
+                    if (blockObj != null && blockObj.activeInHierarchy)
+                    {
+                        if (blockObj.TryGetComponent(out Block block))
+                        {
+                            block.Heal(healAmount);
+                        }
+                    }
+                }
+            }
+        }
         
         // -- Object Pool 로직 --
         private GameObject GetBlockFormPool()
         {
-            GameObject block = blockPool.Count > 0 ? blockPool.Dequeue() : Instantiate(blockPrefab, transform);
+            GameObject block = _blockPool.Count > 0 ? _blockPool.Dequeue() : Instantiate(blockPrefab, transform);
             block.SetActive(true);
             return block;
         }
@@ -167,7 +188,7 @@ namespace Bird.InGame
         public void ReturnBlockToPool(GameObject block)
         {
             block.SetActive(false);
-            blockPool.Enqueue(block);
+            _blockPool.Enqueue(block);
         }
         
         // -- Async 기반 블록 하강 로직 --
@@ -188,10 +209,23 @@ namespace Bird.InGame
             
             for (int col = 0; col < maxColumns; col++)
             {
-                if (blockGrid[maxRows - 1, col] != null)
+                GameObject bottomBlockObj = _blockGrid[maxRows - 1, col];
+                if (bottomBlockObj != null)
                 {
-                    IsGameOverFlag = true; 
-                    return;
+                    if (bottomBlockObj.TryGetComponent(out Block block))
+                    {
+                        if (!block.CausesGameOver)
+                        {
+                            block.ForceDestroy();
+                            _blockGrid[maxRows - 1, col] = null;
+                            Debug.Log($"[무적 블록] 바닥에 도달하여 안전하게 파괴되었습니다. (Col: {col})");
+                        }
+                        else
+                        {
+                            IsGameOverFlag = true; 
+                            return;
+                        }
+                    }
                 }
             }
             
@@ -199,11 +233,11 @@ namespace Bird.InGame
             {
                 for (int col = 0; col < maxColumns; col++)
                 {
-                    GameObject block = blockGrid[row, col];
+                    GameObject block = _blockGrid[row, col];
                     if (block != null)
                     {
-                        blockGrid[row + 1, col] = block;
-                        blockGrid[row, col] = null;
+                        _blockGrid[row + 1, col] = block;
+                        _blockGrid[row, col] = null;
                         
                         block.transform.position = GetWorldPosition(row + 1, col);
                     }
@@ -219,18 +253,18 @@ namespace Bird.InGame
             
             int targetSpawnCount = Random.Range(currentStage.minSpawnCount, currentStage.maxSpawnCount + 1);
             
-            availableColumns.Clear();
+            _availableColumns.Clear();
             for (int i = 0; i < maxColumns; i++)
             {
-                availableColumns.Add(i);
+                _availableColumns.Add(i);
             }
             
             for (int i = 0; i < targetSpawnCount; i++)
             {
-                int randomIndex = Random.Range(0, availableColumns.Count);
-                int selectedCol = availableColumns[randomIndex];
+                int randomIndex = Random.Range(0, _availableColumns.Count);
+                int selectedCol = _availableColumns[randomIndex];
 
-                availableColumns.RemoveAt(randomIndex);
+                _availableColumns.RemoveAt(randomIndex);
 
                 // 랜덤 HP 부여
                 int randomHp = Random.Range(currentStage.minHp, currentStage.maxHp + 1);
@@ -245,8 +279,8 @@ namespace Bird.InGame
         /// </summary>
         public Vector2 GetWorldPosition(int row, int col)
         {
-            float xPos = topLeftPosition.x + (col * cellSpacingX);
-            float yPos = topLeftPosition.y - (row * cellSpacingY);
+            float xPos = topLeftPosition.x + (col * _cellSpacingX);
+            float yPos = topLeftPosition.y - (row * _cellSpacingY);
             return new Vector2(xPos, yPos);
         }
 
@@ -255,8 +289,8 @@ namespace Bird.InGame
         /// </summary>
         public Vector2Int GetGridIndex(Vector2 worldPosition)
         {
-            int col = Mathf.RoundToInt((worldPosition.x - topLeftPosition.x) / cellSpacingX);
-            int row = Mathf.RoundToInt((topLeftPosition.y - worldPosition.y) / cellSpacingY);
+            int col = Mathf.RoundToInt((worldPosition.x - topLeftPosition.x) / _cellSpacingX);
+            int row = Mathf.RoundToInt((topLeftPosition.y - worldPosition.y) / _cellSpacingY);
 
             col = Mathf.Clamp(col, 0, maxColumns - 1);
             row = Mathf.Clamp(row, 0, maxRows - 1);
@@ -269,13 +303,13 @@ namespace Bird.InGame
             int row = sourceIndex.y;
             int col = sourceIndex.x;
 
-            if (col > 0 && blockGrid[row, col - 1] == null)
+            if (col > 0 && _blockGrid[row, col - 1] == null)
             {
                 SpawnBlock(row, col - 1, sourceHp / 2);
                 return true;
             }
             
-            if (col < maxColumns - 1 && blockGrid[row, col + 1] == null)
+            if (col < maxColumns - 1 && _blockGrid[row, col + 1] == null)
             {
                 SpawnBlock(row, col + 1, sourceHp / 2);
                 return true;

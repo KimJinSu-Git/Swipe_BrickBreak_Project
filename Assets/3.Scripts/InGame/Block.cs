@@ -9,13 +9,17 @@ namespace Bird.InGame
         [SerializeField] protected int currentHp;
         [SerializeField] protected TextMeshPro textHp;
 
-        private BlockManager blockManager;
+        protected int maxHp;
+        
+        private BlockManager _blockManager;
         public int CurrentHp => currentHp;
+        public virtual bool CausesGameOver => true;
 
         public virtual void Initialize(int hp, BlockManager manager)
         {
+            maxHp = hp;
             currentHp = hp;
-            blockManager = manager;
+            _blockManager = manager;
             UpdateHpText();
         }
 
@@ -28,9 +32,9 @@ namespace Bird.InGame
             
             if (currentHp <= 0)
             {
-                if (blockManager != null) 
+                if (_blockManager != null) 
                 {
-                    blockManager.ReturnBlockToPool(gameObject);
+                    _blockManager.ReturnBlockToPool(gameObject);
                 }
                 else 
                 {
@@ -49,6 +53,18 @@ namespace Bird.InGame
         public virtual void OnTurnEnd(BlockManager blockManager, Vector2Int gridIndex)
         {
             
+        }
+
+        public virtual void Heal(int amount)
+        {
+            currentHp = Mathf.Min(currentHp + amount, maxHp);
+            UpdateHpText();
+        }
+
+        public virtual void ForceDestroy()
+        {
+            if(_blockManager != null) _blockManager.ReturnBlockToPool(gameObject);
+            else gameObject.SetActive(false);
         }
     }
 }
