@@ -110,6 +110,8 @@ namespace Bird.Core
             currentTurn++;
             OnTurnChanged?.Invoke(currentTurn);
             
+            blockManager.ExecuteTurnEndEffects();
+            
             await blockManager.MoveBlocksDownAsync(currentTurn);
             
             ChangeState(GameState.GameOverCheck);

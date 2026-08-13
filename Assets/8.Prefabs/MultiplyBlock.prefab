@@ -187,10 +187,10 @@ GameObject:
   m_Component:
   - component: {fileID: 1069030298576124453}
   - component: {fileID: 3396599465633649928}
-  - component: {fileID: 8088364417311308773}
   - component: {fileID: 6161874511032154069}
+  - component: {fileID: 4123755210985588276}
   m_Layer: 0
-  m_Name: Block
+  m_Name: MultiplyBlock
   m_TagString: Block
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -257,7 +257,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.75, g: 0.75, b: 0.75, a: 1}
+  m_Color: {r: 0.6556604, g: 1, b: 0.94808614, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -267,20 +267,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &8088364417311308773
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2127485777863446611}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dac681df1c492b342b593cfab047e4d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  currentHp: 10
-  textHp: {fileID: 3921392208947558154}
 --- !u!61 &6161874511032154069
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -327,3 +313,17 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &4123755210985588276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2127485777863446611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dccbaf1d154c9804a9751d1d4c46cac6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentHp: 0
+  textHp: {fileID: 3921392208947558154}

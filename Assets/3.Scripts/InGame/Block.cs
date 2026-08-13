@@ -6,17 +6,20 @@ namespace Bird.InGame
 {
     public class Block : MonoBehaviour
     {
-        [SerializeField] private int currentHp;
-        [SerializeField] private TextMeshPro textHp;
+        [SerializeField] protected int currentHp;
+        [SerializeField] protected TextMeshPro textHp;
+
+        private BlockManager blockManager;
         public int CurrentHp => currentHp;
 
-        public void Initialize(int hp)
+        public virtual void Initialize(int hp, BlockManager manager)
         {
             currentHp = hp;
+            blockManager = manager;
             UpdateHpText();
         }
 
-        public int TakeDamage(int damage)
+        public virtual int TakeDamage(int damage)
         {
             int actualDamage = Math.Min(currentHp, damage);
             currentHp -= actualDamage;
@@ -25,15 +28,27 @@ namespace Bird.InGame
             
             if (currentHp <= 0)
             {
-                // TODO :: 오브젝트 풀로 반환 추가 예정
-                gameObject.SetActive(false);
+                if (blockManager != null) 
+                {
+                    blockManager.ReturnBlockToPool(gameObject);
+                }
+                else 
+                {
+                    gameObject.SetActive(false);
+                }
             }
             return actualDamage;
         }
 
-        private void UpdateHpText()
+        protected void UpdateHpText()
         {
             if (textHp != null) textHp.text = currentHp.ToString();
+        }
+
+        // 턴 종료 시 호출될 메소드
+        public virtual void OnTurnEnd(BlockManager blockManager, Vector2Int gridIndex)
+        {
+            
         }
     }
 }

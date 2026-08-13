@@ -28,6 +28,9 @@ namespace Bird.InGame
         [Header("Data")]
         [SerializeField] private DifficultyData difficultyData;
 
+        [Header("Block Settings")] 
+        [SerializeField] private int maxMultiplyPerRow = 1;
+
         private float cellSpacingX;
         private float cellSpacingY;
 
@@ -44,7 +47,13 @@ namespace Bird.InGame
             CalculateCellSpacing();
             InitializeGrid();
             InitializePool();
-            _ = MoveBlocksDownAsync(1);
+
+            for (int i = 1; i <= 3; i++)
+            {
+                ShiftGridDataDown();
+                SpawnNewRow(i);
+            }
+            // _ = MoveBlocksDownAsync(1);
         }
         
         /// <summary>
@@ -70,33 +79,6 @@ namespace Bird.InGame
                 newBlock.SetActive(false);
                 blockPool.Enqueue(newBlock);
             }
-        }
-
-        private void SpawnTestBlock(int row, int col, int hp)
-        {
-            GameObject blockObj = GetBlockFormPool();
-            
-            blockObj.transform.position = GetWorldPosition(row, col);
-            
-            if (blockObj.TryGetComponent(out SpriteRenderer spriteRenderer))
-            {
-                // 원본 스프라이트의 실제 크기 측정
-                float originalWidth = spriteRenderer.sprite.bounds.size.x;
-                float originalHeight = spriteRenderer.sprite.bounds.size.y;
-
-                // 목표 간격(cellSpacing)에 맞추기 위한 배율 계산
-                float scaleX = cellSpacingX / originalWidth;
-                float scaleY = cellSpacingY / originalHeight;
-
-                blockObj.transform.localScale = new Vector3(scaleX, scaleY, 1f);
-            }
-            
-            if (blockObj.TryGetComponent(out Block blockComponent))
-            {
-                blockComponent.Initialize(hp);
-            }
-            
-            blockGrid[row, col] = blockObj;
         }
 
         public void DamageBlock(Vector2Int gridIndex, int damage)
@@ -127,8 +109,55 @@ namespace Bird.InGame
             }
         }
         
+        private void SpawnBlock(int row, int col, int hp)
+        {
+            GameObject blockObj = GetBlockFormPool();
+            
+            blockObj.transform.position = GetWorldPosition(row, col);
+            
+            if (blockObj.TryGetComponent(out SpriteRenderer spriteRenderer))
+            {
+                float originalWidth = spriteRenderer.sprite.bounds.size.x;
+                float originalHeight = spriteRenderer.sprite.bounds.size.y;
+
+                float scaleX = cellSpacingX / originalWidth;
+                float scaleY = cellSpacingY / originalHeight;
+
+                blockObj.transform.localScale = new Vector3(scaleX, scaleY, 1f);
+            }
+            
+            if (blockObj.TryGetComponent(out Block blockComponent))
+            {
+                blockComponent.Initialize(hp, this);
+            }
+            
+            blockGrid[row, col] = blockObj;
+        }
+        
+        // -- Special Block 로직 --
+
+        public void ExecuteTurnEndEffects()
+        {
+            for (int row = 0; row < maxRows; row++)
+            {
+                int currentMultiplyCount = 0;
+
+                for (int col = 0; col < maxColumns; col++)
+                {
+                    GameObject blockObj = blockGrid[row, col];
+                    if (blockObj != null && blockObj.activeInHierarchy)
+                    {
+                        if (blockObj.TryGetComponent(out Block block))
+                        {
+                            block.OnTurnEnd(this, new Vector2Int(col, row));
+                        }
+                    }
+                }
+            }
+        }
+        
         // -- Object Pool 로직 --
-        public GameObject GetBlockFormPool()
+        private GameObject GetBlockFormPool()
         {
             GameObject block = blockPool.Count > 0 ? blockPool.Dequeue() : Instantiate(blockPrefab, transform);
             block.SetActive(true);
@@ -205,9 +234,11 @@ namespace Bird.InGame
 
                 // 랜덤 HP 부여
                 int randomHp = Random.Range(currentStage.minHp, currentStage.maxHp + 1);
-                SpawnTestBlock(0, selectedCol, randomHp);
+                SpawnBlock(0, selectedCol, randomHp);
             }
         }
+        
+        // -- Grid 기반 블록 위치 관련 로직 --
 
         /// <summary>
         /// 논리적인 2D Grid 인덱스를 Unity World 좌표(Transform)로 변환합니다.
@@ -231,6 +262,26 @@ namespace Bird.InGame
             row = Mathf.Clamp(row, 0, maxRows - 1);
             
             return new Vector2Int(col, row);
+        }
+
+        public bool TryMultiplyBlock(Vector2Int sourceIndex, int sourceHp)
+        {
+            int row = sourceIndex.y;
+            int col = sourceIndex.x;
+
+            if (col > 0 && blockGrid[row, col - 1] == null)
+            {
+                SpawnBlock(row, col - 1, sourceHp / 2);
+                return true;
+            }
+            
+            if (col < maxColumns - 1 && blockGrid[row, col + 1] == null)
+            {
+                SpawnBlock(row, col + 1, sourceHp / 2);
+                return true;
+            }
+            
+            return false;
         }
     }
 }
