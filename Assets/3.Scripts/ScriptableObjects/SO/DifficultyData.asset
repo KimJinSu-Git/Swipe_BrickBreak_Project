@@ -19,15 +19,30 @@ MonoBehaviour:
     maxHp: 5
     minSpawnCount: 1
     maxSpawnCount: 2
+    spawnRates:
+    - blockType: 0
+      weight: 100
   - minTurn: 6
     maxTurn: 20
     minHp: 5
     maxHp: 50
     minSpawnCount: 3
     maxSpawnCount: 4
+    spawnRates:
+    - blockType: 0
+      weight: 90
+    - blockType: 1
+      weight: 10
   - minTurn: 21
     maxTurn: 40
     minHp: 50
     maxHp: 150
     minSpawnCount: 4
     maxSpawnCount: 5
+    spawnRates:
+    - blockType: 0
+      weight: 80
+    - blockType: 1
+      weight: 10
+    - blockType: 2
+      weight: 10

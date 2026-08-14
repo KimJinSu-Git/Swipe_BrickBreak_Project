@@ -4,8 +4,12 @@ using UnityEngine;
 
 namespace Bird.InGame
 {
+    public enum BlockType { Normal, Multiply, Recovery, Invincible }
     public class Block : MonoBehaviour
     {
+        [Header("Block Info")] 
+        [SerializeField] private BlockType blockType;
+        
         [SerializeField] protected int currentHp;
         [SerializeField] protected TextMeshPro textHp;
 
@@ -13,6 +17,7 @@ namespace Bird.InGame
         
         private BlockManager _blockManager;
         public int CurrentHp => currentHp;
+        public BlockType Type => blockType;
         public virtual bool CausesGameOver => true;
 
         public virtual void Initialize(int hp, BlockManager manager)
@@ -46,6 +51,10 @@ namespace Bird.InGame
 
         protected void UpdateHpText()
         {
+            if (blockType == BlockType.Invincible)
+            {
+                textHp.enabled = false;
+            }
             if (textHp != null) textHp.text = currentHp.ToString();
         }
 

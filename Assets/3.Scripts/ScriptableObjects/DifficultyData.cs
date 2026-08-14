@@ -1,9 +1,17 @@
 using System;
 using System.Collections.Generic;
+using Bird.InGame;
 using UnityEngine;
 
 namespace Bird.Core
 {
+    [Serializable]
+    public struct BlockSpawnRate
+    {
+        public BlockType blockType;
+        [Range(0, 100)] public float weight;
+    }
+    
     [Serializable]
     public struct DifficultyStage
     {
@@ -14,6 +22,8 @@ namespace Bird.Core
 
         public int minSpawnCount;
         public int maxSpawnCount;
+        
+        public List<BlockSpawnRate> spawnRates;
     }
 
     [CreateAssetMenu(fileName = "DifficultyData", menuName = "Bird/DifficultyData")]

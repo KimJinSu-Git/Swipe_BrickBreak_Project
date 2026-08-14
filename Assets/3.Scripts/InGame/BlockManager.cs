@@ -3,12 +3,20 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bird.Core;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
 
 namespace Bird.InGame
 {
     public class BlockManager : MonoBehaviour
     {
+        [Serializable]
+        public struct BlockPrefabMapping
+        {
+            public BlockType type;
+            public GameObject prefab;
+        }
+        
         [Header("Managers")]
         [SerializeField] private ScoreManager scoreManager;
         [SerializeField] private CoinManager coinManager;
@@ -22,8 +30,8 @@ namespace Bird.InGame
         [SerializeField] private Vector2 bottomRightPosition = new Vector2(1.8f, -2.75f);
 
         [Header("Polling Settings")]
-        [SerializeField] private GameObject blockPrefab;
-        [SerializeField] private int initialPoolSize = 30;
+        [SerializeField] private List<BlockPrefabMapping> blockPrefabs;
+        [SerializeField] private int initialPoolSize = 10;
         
         [Header("Data")]
         [SerializeField] private DifficultyData difficultyData;
@@ -34,7 +42,7 @@ namespace Bird.InGame
         private float _cellSpacingX;
         private float _cellSpacingY;
 
-        private Queue<GameObject> _blockPool = new Queue<GameObject>();
+        private Dictionary<BlockType, Queue<GameObject>> _blockPools = new Dictionary<BlockType, Queue<GameObject>>();
         private GameObject[,] _blockGrid;
         private List<int> _availableColumns = new List<int>();
         
@@ -73,11 +81,17 @@ namespace Bird.InGame
 
         private void InitializePool()
         {
-            for (int i = 0; i < initialPoolSize; i++)
+            _blockPools.Clear();
+
+            foreach (var mapping in blockPrefabs)
             {
-                GameObject newBlock = Instantiate(blockPrefab, transform);
-                newBlock.SetActive(false);
-                _blockPool.Enqueue(newBlock);
+                _blockPools[mapping.type] = new Queue<GameObject>();
+                for (int i = 0; i < initialPoolSize; i++)
+                {
+                    GameObject newBlock = Instantiate(mapping.prefab, transform);
+                    newBlock.SetActive(false);
+                    _blockPools[mapping.type].Enqueue(newBlock);
+                }
             }
         }
 
@@ -109,9 +123,9 @@ namespace Bird.InGame
             }
         }
         
-        private void SpawnBlock(int row, int col, int hp)
+        private void SpawnBlock(int row, int col, int hp, BlockType type = BlockType.Normal)
         {
-            GameObject blockObj = GetBlockFormPool();
+            GameObject blockObj = GetBlockFormPool(type);
             
             blockObj.transform.position = GetWorldPosition(row, col);
             
@@ -178,17 +192,28 @@ namespace Bird.InGame
         }
         
         // -- Object Pool 로직 --
-        private GameObject GetBlockFormPool()
+        private GameObject GetBlockFormPool(BlockType type)
         {
-            GameObject block = _blockPool.Count > 0 ? _blockPool.Dequeue() : Instantiate(blockPrefab, transform);
-            block.SetActive(true);
-            return block;
+            if (_blockPools.ContainsKey(type) && _blockPools[type].Count > 0)
+            {
+                GameObject block = _blockPools[type].Dequeue();
+                block.SetActive(true);
+                return block;
+            }
+
+            GameObject prefab = blockPrefabs.Find(x => x.type == type).prefab;
+            GameObject newBlock = Instantiate(prefab, transform);
+            newBlock.SetActive(true);
+            return newBlock;
         }
 
         public void ReturnBlockToPool(GameObject block)
         {
-            block.SetActive(false);
-            _blockPool.Enqueue(block);
+            if (block.TryGetComponent(out Block blockComponent))
+            {
+                block.SetActive(false);
+                _blockPools[blockComponent.Type].Enqueue(block);
+            }
         }
         
         // -- Async 기반 블록 하강 로직 --
@@ -252,6 +277,7 @@ namespace Bird.InGame
             DifficultyStage currentStage = difficultyData.GetStageData(currentTurn);
             
             int targetSpawnCount = Random.Range(currentStage.minSpawnCount, currentStage.maxSpawnCount + 1);
+            targetSpawnCount = Mathf.Clamp(targetSpawnCount, 1, maxColumns - 1);
             
             _availableColumns.Clear();
             for (int i = 0; i < maxColumns; i++)
@@ -265,11 +291,30 @@ namespace Bird.InGame
                 int selectedCol = _availableColumns[randomIndex];
 
                 _availableColumns.RemoveAt(randomIndex);
+                
+                BlockType selectedType = GetRandomBlockType(currentStage.spawnRates);
 
                 // 랜덤 HP 부여
                 int randomHp = Random.Range(currentStage.minHp, currentStage.maxHp + 1);
-                SpawnBlock(0, selectedCol, randomHp);
+                SpawnBlock(0, selectedCol, randomHp, selectedType);
             }
+        }
+        
+        /// <summary>
+        /// 블록의 타입을 결정하는 가중치 랜덤 알고리즘입니다.
+        /// </summary>
+        private BlockType GetRandomBlockType(List<BlockSpawnRate> rates)
+        {
+            float totalWeight = 0;
+            foreach (var rate in rates) totalWeight += rate.weight;
+
+            float randomValue = Random.Range(0, totalWeight);
+            foreach (var rate in rates)
+            {
+                randomValue -= rate.weight;
+                if (randomValue <= 0) return rate.blockType;
+            }
+            return BlockType.Normal;
         }
         
         // -- Grid 기반 블록 위치 관련 로직 --
@@ -305,13 +350,13 @@ namespace Bird.InGame
 
             if (col > 0 && _blockGrid[row, col - 1] == null)
             {
-                SpawnBlock(row, col - 1, sourceHp / 2);
+                SpawnBlock(row, col - 1, sourceHp / 2, BlockType.Multiply);
                 return true;
             }
             
             if (col < maxColumns - 1 && _blockGrid[row, col + 1] == null)
             {
-                SpawnBlock(row, col + 1, sourceHp / 2);
+                SpawnBlock(row, col + 1, sourceHp / 2, BlockType.Multiply);
                 return true;
             }
             

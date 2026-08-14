@@ -1375,7 +1375,15 @@ MonoBehaviour:
   maxColumns: 7
   topLeftPosition: {x: -1.6, y: 1.8}
   bottomRightPosition: {x: 1.6, y: -2}
-  blockPrefab: {fileID: 2127485777863446611, guid: 642d369f749f3a14c93d4dbbed3ba928, type: 3}
+  blockPrefabs:
+  - type: 0
+    prefab: {fileID: 2127485777863446611, guid: 8ecacb96d754fc14599ead1dfe77b1b9, type: 3}
+  - type: 1
+    prefab: {fileID: 2127485777863446611, guid: 8479d5278f5facd45ad14f60736cfc15, type: 3}
+  - type: 2
+    prefab: {fileID: 2127485777863446611, guid: b6c2c58a317825b4584fb6c1cea196e3, type: 3}
+  - type: 3
+    prefab: {fileID: 2127485777863446611, guid: 642d369f749f3a14c93d4dbbed3ba928, type: 3}
   initialPoolSize: 30
   difficultyData: {fileID: 11400000, guid: d56d4273b651b684ea1fca37fc2a5023, type: 2}
   maxMultiplyPerRow: 1
