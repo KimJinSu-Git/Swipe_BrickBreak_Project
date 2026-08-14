@@ -17,11 +17,14 @@ namespace Bird.Core
     
     public class TurnManager : MonoBehaviour
     {
-        [SerializeField] private GameState currentState;
-        [SerializeField] private TrajectoryRenderer trajectoryRenderer;
+        [Header("Manager Settings")]
         [SerializeField] private BallManager ballManager;
         [SerializeField] private BlockManager blockManager;
-
+        [SerializeField] private ComboManager comboManager;
+        
+        [SerializeField] private GameState currentState;
+        [SerializeField] private TrajectoryRenderer trajectoryRenderer;
+        
         [SerializeField] private int currentTurn = 1;
         
         [Header("Spawn Settings")]
@@ -88,7 +91,6 @@ namespace Bird.Core
 
         private void OnEnterIdle()
         {
-            Debug.Log("대기 상태: 스와이프 및 스킬 사용 가능");
             ballManager.ResetBallCountUI();
         }
         private void OnEnterAiming() => Debug.Log("조준 상태: LineRenderer 예상 궤적 표시 시작");
@@ -110,6 +112,8 @@ namespace Bird.Core
             currentTurn++;
             OnTurnChanged?.Invoke(currentTurn);
             
+            if(comboManager != null) comboManager.ApplyTurnEndRewards();
+            
             blockManager.ExecuteTurnEndEffects();
             
             await blockManager.MoveBlocksDownAsync(currentTurn);
@@ -120,7 +124,7 @@ namespace Bird.Core
         {
             Debug.Log("게임 오버 체크: 데드라인 도달 여부 확인");
             
-            // 블록이 바닥에 닿았는지 검사합니다.[cite: 8]
+            // 블록이 바닥에 닿았는지 검사합니다.
             if (blockManager.IsGameOverFlag)
             {
                 Debug.Log("게임 오버!");

@@ -31,6 +31,7 @@ namespace Bird.Ball
 
         public event Action OnAllBallsReturned;
         public event Action<int> OnBallCountChanged;
+        public List<BallType> PlayerDeck => playerDeck;
 
         private void Awake()
         {

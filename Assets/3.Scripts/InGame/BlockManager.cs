@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bird.Core;
+using Bird.Data;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
@@ -19,7 +20,7 @@ namespace Bird.InGame
         
         [Header("Managers")]
         [SerializeField] private ScoreManager scoreManager;
-        [SerializeField] private CoinManager coinManager;
+        [SerializeField] private ComboManager comboManager;
         
         [Header("Grid Settings")] 
         [SerializeField] private int maxRows = 7; // 세로 개수
@@ -104,15 +105,17 @@ namespace Bird.InGame
             
             if (targetBlockObj.TryGetComponent(out Block targetBlock))
             {
+                if (comboManager != null) comboManager.AddCombo();
+                
                 int earnedScore = targetBlock.TakeDamage(damage);
                 bool isDestroyed = targetBlock.CurrentHp <= 0;
 
                 if (isDestroyed)
                 {
                     _blockGrid[gridIndex.y, gridIndex.x] = null;
-                    if (coinManager != null)
+                    if (comboManager != null)
                     {
-                        coinManager.AddCoins(20);
+                        comboManager.AddPendingCoin(20);
                     }
                 }
 
