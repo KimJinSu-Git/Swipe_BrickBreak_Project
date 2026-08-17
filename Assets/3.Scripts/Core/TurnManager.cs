@@ -12,7 +12,8 @@ namespace Bird.Core
         Aiming,
         Shooting,
         TurnEnd,
-        GameOverCheck
+        GameOverCheck,
+        SkillTargeting
     }
     
     public class TurnManager : MonoBehaviour
@@ -21,6 +22,7 @@ namespace Bird.Core
         [SerializeField] private BallManager ballManager;
         [SerializeField] private BlockManager blockManager;
         [SerializeField] private ComboManager comboManager;
+        [SerializeField] private SkillManager skillManager;
         
         [SerializeField] private GameState currentState;
         [SerializeField] private TrajectoryRenderer trajectoryRenderer;
@@ -86,6 +88,9 @@ namespace Bird.Core
                 case GameState.GameOverCheck:
                     OnEnterGameOverCheck();
                     break;
+                case GameState.SkillTargeting:
+                    Debug.Log("스킬 타겟팅 상태: 타격할 가로줄을 터치하세요!");
+                    break;
             }
         }
 
@@ -146,6 +151,10 @@ namespace Bird.Core
             {
                 UpdateAiming();
             }
+            else if (currentState == GameState.SkillTargeting)
+            {
+                CheckSkillTargetingInput(); 
+            }
         }
         
         private void CheckDragStart()
@@ -156,6 +165,20 @@ namespace Bird.Core
             {
                 _dragStartPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 ChangeState(GameState.Aiming);
+            }
+        }
+        
+        private void CheckSkillTargetingInput()
+        {
+            if (IsPointerOverUI()) return;
+
+            if (Input.GetMouseButtonDown(0))
+            {
+                Vector2 worldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                Vector2Int gridIndex = blockManager.GetGridIndex(worldPos);
+
+                skillManager.ExecuteLineStrike(gridIndex.y, currentTurn);
+                ChangeState(GameState.Idle); 
             }
         }
 
@@ -211,6 +234,15 @@ namespace Bird.Core
             
             Debug.Log("회수 버튼 클릭: 모든 공 강제 회수!");
             ballManager.ForceRetrieveAllActiveBalls(); 
+        }
+        
+        public void OnSkillButtonClicked()
+        {
+            // 스킬은 무조건 대기(Idle) 상태일 때만 켤 수 있습니다
+            if (currentState == GameState.Idle && skillManager.IsSkillReady)
+            {
+                ChangeState(GameState.SkillTargeting);
+            }
         }
     }
 }

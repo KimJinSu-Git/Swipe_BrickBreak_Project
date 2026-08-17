@@ -21,6 +21,8 @@ namespace Bird.InGame
         [Header("Managers")]
         [SerializeField] private ScoreManager scoreManager;
         [SerializeField] private ComboManager comboManager;
+        [SerializeField] private SkillManager skillManager;
+        
         
         [Header("Grid Settings")] 
         [SerializeField] private int maxRows = 7; // 세로 개수
@@ -50,6 +52,7 @@ namespace Bird.InGame
         public bool IsGameOverFlag { get; private set; }
         
         public int MaxColumns => maxColumns;
+        public int MaxRows => maxRows;
 
         private void Awake()
         {
@@ -95,6 +98,8 @@ namespace Bird.InGame
                 }
             }
         }
+        
+        // -- Block 관련 로직 --
 
         public void DamageBlock(Vector2Int gridIndex, int damage)
         {
@@ -122,6 +127,7 @@ namespace Bird.InGame
                 if (scoreManager != null)
                 {
                     scoreManager.AddScore(earnedScore, isDestroyed);
+                    skillManager.AddGauge(1f);
                 }
             }
         }
@@ -149,6 +155,20 @@ namespace Bird.InGame
             }
             
             _blockGrid[row, col] = blockObj;
+        }
+        
+        /// <summary>
+        /// 액티브 스킬(Line Strike) 사용 시 특정 가로줄을 일괄 타격합니다.
+        /// </summary>
+        public void DamageRows(int startRow, int endRow, int damage)
+        {
+            for (int row = startRow; row <= endRow; row++)
+            {
+                for (int col = 0; col < maxColumns; col++)
+                {
+                    DamageBlock(new Vector2Int(col, row), damage);
+                }
+            }
         }
         
         // -- Special Block 로직 --
