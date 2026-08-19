@@ -4,11 +4,26 @@ using System.Threading.Tasks;
 using Bird.InGame;
 using Bird.OutGame;
 using UnityEngine;
+using VFXManager = Bird.Core.VFXManager;
 
 namespace Bird.Ball
 {
     public class BallManager : MonoBehaviour
     {
+        [Serializable]
+        public struct BallVisualMapping
+        {
+            public BallType type;
+            public Sprite sprite;
+            public Color ballColor;
+        }
+        
+        [Header("Manager Settings")] 
+        [SerializeField] private VFXManager vfxManager;
+        
+        [Header("Ball Visual Settings")]
+        [SerializeField] private List<BallVisualMapping> ballVisualMappings;
+        
         [Header("Pool Settings")] 
         [SerializeField] private GameObject ballPrefab;
         [SerializeField] private int initialBallCount = 50;
@@ -24,6 +39,7 @@ namespace Bird.Ball
         
         private Queue<GameObject> _ballPool = new Queue<GameObject>();
         private List<GameObject> _activeBalls =  new List<GameObject>();
+        private Dictionary<BallType, BallVisualMapping> _ballVisualDict = new Dictionary<BallType, BallVisualMapping>();
         
         private Transform _managerTransform;
 
@@ -35,6 +51,11 @@ namespace Bird.Ball
 
         private void Awake()
         {
+            foreach (var mapping in ballVisualMappings)
+            {
+                _ballVisualDict[mapping.type] = mapping;
+            }
+            
             _managerTransform = transform;
             InitializePool();
         }
@@ -58,6 +79,7 @@ namespace Bird.Ball
                 if (newBall.TryGetComponent(out BallController controller))
                 {
                     controller.SetBlockManager(blockManager);
+                    controller.SetVFXManager(vfxManager);
                 }
                 
                 newBall.SetActive(false);
@@ -102,8 +124,7 @@ namespace Bird.Ball
 
                 if (ball.TryGetComponent(out BallController ballController))
                 {
-                    IAttackBehaviour attackBehavior = GetAttackBehavior(ballType);
-                    ballController.SetAttackBehavior(attackBehavior);
+                    SetupSpecialBall(ballController, ballType);
                 }
 
                 if (ball.TryGetComponent(out Rigidbody2D rb))
@@ -116,23 +137,6 @@ namespace Bird.Ball
                 
                 await Task.Delay(delayBetweenBallsMs);
             }
-            /*
-            for (int i = 0; i < currentBallCount; i++)
-            {
-                if (!isFiring) break;
-                
-                GameObject ball = GetBall();
-                ball.transform.position = spawnPosition;
-                activeBalls.Add(ball);
-                
-                if (ball.TryGetComponent(out Rigidbody2D rb))
-                {
-                    rb.linearVelocity = direction * ballSpeed;
-                }
-
-                await Task.Delay(delayBetweenBallsMs);
-            }
-            */
             _isFiring = false;
             Debug.Log($"{currentBallCount} 개의 공 발사 완료");
         }
@@ -173,6 +177,34 @@ namespace Bird.Ball
             _activeBalls.Clear();
             
             OnAllBallsReturned?.Invoke();
+        }
+        
+        /// <summary>
+        /// 공을 스폰하거나 풀에서 꺼낼 때 호출하여 공격 방식과 이미지를 주입합니다.
+        /// </summary>
+        public void SetupSpecialBall(BallController ball, BallType type)
+        {
+            if (_ballVisualDict.TryGetValue(type, out BallVisualMapping visualInfo))
+            {
+                ball.InitializeVisual(type, visualInfo.sprite, visualInfo.ballColor);
+            }
+
+            switch (type)
+            {
+                case BallType.Explosion:
+                    ball.SetAttackBehavior(new ExplosionAttack());
+                    break;
+                case BallType.Cross:
+                    ball.SetAttackBehavior(new CrossAttack());
+                    break;
+                case BallType.Laser:
+                    ball.SetAttackBehavior(new LaserAttack());
+                    break;
+                case BallType.Normal:
+                default:
+                    ball.SetAttackBehavior(new NormalAttack());
+                    break;
+            }
         }
     }
 }

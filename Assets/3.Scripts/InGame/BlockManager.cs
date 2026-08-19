@@ -22,7 +22,7 @@ namespace Bird.InGame
         [SerializeField] private ScoreManager scoreManager;
         [SerializeField] private ComboManager comboManager;
         [SerializeField] private SkillManager skillManager;
-        
+        [SerializeField] private VFXManager vfxManager;
         
         [Header("Grid Settings")] 
         [SerializeField] private int maxRows = 7; // 세로 개수
@@ -288,6 +288,11 @@ namespace Bird.InGame
                         _blockGrid[row, col] = null;
                         
                         block.transform.position = GetWorldPosition(row + 1, col);
+                        
+                        if (block.TryGetComponent(out Block blockComponent))
+                        {
+                            blockComponent.SyncBaselinePosition();
+                        }
                     }
                 }
             }

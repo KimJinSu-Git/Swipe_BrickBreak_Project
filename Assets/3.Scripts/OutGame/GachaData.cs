@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Bird.Ball;
 
 namespace Bird.OutGame
 {
-    public enum BallType { Normal, Cross, Explosion, Laser}
-
     [Serializable]
     public struct GachaRate
     {

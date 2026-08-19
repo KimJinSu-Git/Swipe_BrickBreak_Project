@@ -1,3 +1,4 @@
+using Bird.Core;
 using Bird.InGame;
 using UnityEngine;
 
@@ -8,7 +9,7 @@ namespace Bird.Ball
     /// </summary>
     public interface IAttackBehaviour
     {
-        void ExecuteAttack(Vector2Int hitGridIndex, BlockManager blockManager);
+        void ExecuteAttack(Vector2Int hitGridIndex, BlockManager blockManager, VFXManager vfxManager);
     }
 
     /// <summary>
@@ -16,7 +17,10 @@ namespace Bird.Ball
     /// </summary>
     public class NormalAttack : IAttackBehaviour
     {
-        public void ExecuteAttack(Vector2Int hitGridIndex, BlockManager blockManager) => blockManager.DamageBlock(hitGridIndex, 1);
+        public void ExecuteAttack(Vector2Int hitGridIndex, BlockManager blockManager, VFXManager vfxManager)
+        {
+            blockManager.DamageBlock(hitGridIndex, 1);
+        } 
     }
 
     /// <summary>
@@ -24,7 +28,7 @@ namespace Bird.Ball
     /// </summary>
     public class ExplosionAttack : IAttackBehaviour
     {
-        public void ExecuteAttack(Vector2Int hitGridIndex, BlockManager blockManager)
+        public void ExecuteAttack(Vector2Int hitGridIndex, BlockManager blockManager, VFXManager vfxManager)
         {
             for (int x = -1; x <= 1; x++)
             {
@@ -34,6 +38,9 @@ namespace Bird.Ball
                     blockManager.DamageBlock(targetIndex, 1);
                 }
             }
+            
+            Vector3 centerPos = blockManager.GetWorldPosition(hitGridIndex.y, hitGridIndex.x);
+            if (vfxManager != null) vfxManager.PlayVFX(VFXType.Explosion, centerPos);
         }
     }
 
@@ -51,13 +58,16 @@ namespace Bird.Ball
             new Vector2Int(1, 0)
         };
         
-        public void ExecuteAttack(Vector2Int hitGridIndex, BlockManager blockManager)
+        public void ExecuteAttack(Vector2Int hitGridIndex, BlockManager blockManager, VFXManager vfxManager)
         {
             foreach (Vector2Int offset in crossOffsets)
             {
                 Vector2Int targetIndex = new Vector2Int(hitGridIndex.x + offset.x, hitGridIndex.y + offset.y);
                 blockManager.DamageBlock(targetIndex, 1);
             }
+            
+            Vector3 centerPos = blockManager.GetWorldPosition(hitGridIndex.y, hitGridIndex.x);
+            if (vfxManager != null) vfxManager.PlayVFX(VFXType.Cross, centerPos);
         }
     }
     
@@ -66,13 +76,16 @@ namespace Bird.Ball
     /// </summary>
     public class LaserAttack : IAttackBehaviour
     {
-        public void ExecuteAttack(Vector2Int hitGridIndex, BlockManager blockManager)
+        public void ExecuteAttack(Vector2Int hitGridIndex, BlockManager blockManager, VFXManager vfxManager)
         {
             for (int x = 0; x < blockManager.MaxColumns; x++)
             {
                 Vector2Int targetIndex = new Vector2Int(x, hitGridIndex.y);
                 blockManager.DamageBlock(targetIndex, 1);
             }
+            
+            Vector3 leftWallPos = blockManager.GetWorldPosition(hitGridIndex.y, 0);
+            if (vfxManager != null) vfxManager.PlayVFX(VFXType.Laser, leftWallPos);
         }
     }
 }

@@ -393,6 +393,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 39814500}
   m_CullTransparentMesh: 1
+--- !u!1 &67627174
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 67627175}
+  - component: {fileID: 67627176}
+  m_Layer: 0
+  m_Name: VFXManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &67627175
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 67627174}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1947022594}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &67627176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 67627174}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75cee69260d979048acf996da9f3e78b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  vfxMappings:
+  - type: 0
+    prefab: {fileID: 19818802, guid: 7f45705f5f30d8a45af0fc2eb8c8998a, type: 3}
+  - type: 1
+    prefab: {fileID: 198820429938409348, guid: d24d32ae7abae424080a26044bf04ea0, type: 3}
+  - type: 2
+    prefab: {fileID: 3794208998090478330, guid: c8df3bab2ed2b194b9b90aa191e2620c, type: 3}
+  - type: 3
+    prefab: {fileID: 19864098, guid: 2ef436b6c6313494daf190cd68ebf636, type: 3}
+  - type: 4
+    prefab: {fileID: 198988520764478304, guid: 84895402b9414d64e9b52aefa246be78, type: 3}
+  initialPoolSize: 5
 --- !u!1 &108640008
 GameObject:
   m_ObjectHideFlags: 0
@@ -1431,6 +1487,7 @@ MonoBehaviour:
   scoreManager: {fileID: 883871569}
   comboManager: {fileID: 782124070}
   skillManager: {fileID: 1121680222}
+  vfxManager: {fileID: 67627176}
   maxRows: 7
   maxColumns: 7
   topLeftPosition: {x: -1.6, y: 1.8}
@@ -4634,6 +4691,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cf308347d4aa6a54a849bdca121e6c96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  vfxManager: {fileID: 67627176}
+  ballVisualMappings:
+  - type: 0
+    sprite: {fileID: -2413806693520163455, guid: 48df000a6f0060046b27bb84ddc06886, type: 3}
+    ballColor: {r: 1, g: 1, b: 1, a: 1}
+  - type: 1
+    sprite: {fileID: -2413806693520163455, guid: 48df000a6f0060046b27bb84ddc06886, type: 3}
+    ballColor: {r: 1, g: 0, b: 0, a: 1}
+  - type: 2
+    sprite: {fileID: -2413806693520163455, guid: 48df000a6f0060046b27bb84ddc06886, type: 3}
+    ballColor: {r: 0, g: 1, b: 0.41017795, a: 1}
+  - type: 3
+    sprite: {fileID: -2413806693520163455, guid: 48df000a6f0060046b27bb84ddc06886, type: 3}
+    ballColor: {r: 0, g: 0.9290662, b: 1, a: 1}
   ballPrefab: {fileID: 884272447754986144, guid: ccb54c389dc83524e8b510f8193d4f5d, type: 3}
   initialBallCount: 50
   blockManager: {fileID: 220523035}
@@ -8211,6 +8282,7 @@ Transform:
   - {fileID: 1520766194}
   - {fileID: 782124069}
   - {fileID: 1121680221}
+  - {fileID: 67627175}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1950482443
