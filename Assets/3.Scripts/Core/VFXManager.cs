@@ -11,7 +11,7 @@ namespace Bird.Core
         Explosion,
         Cross,
         Laser,
-        LineSpike
+        LineStrike
     }
     
     public class VFXManager : MonoBehaviour

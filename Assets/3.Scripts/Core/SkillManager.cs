@@ -10,6 +10,7 @@ namespace Bird.Core
         [Header("Dependencies")]
         [SerializeField] private SkillData skillData;
         [SerializeField] private BlockManager blockManager;
+        [SerializeField] private VFXManager vfxManager;
 
         [Header("Runtime State")] 
         [SerializeField] private float currentGauge = 0f;
@@ -46,6 +47,18 @@ namespace Bird.Core
             int endRow = Mathf.Min(blockManager.MaxRows - 1, startRow + rowCount - 1);
             
             blockManager.DamageRows(startRow, endRow, damage);
+            
+            if (vfxManager != null)
+            {
+                for (int row = startRow; row <= endRow; row++)
+                {
+                    Vector3 leftWallPos = blockManager.GetWorldPosition(row, 0);
+                    
+                    leftWallPos.x -= 0.2f; 
+                    
+                    vfxManager.PlayVFX(VFXType.LineStrike, leftWallPos);
+                }
+            }
             
             currentGauge = 0f;
             skillLevel++;

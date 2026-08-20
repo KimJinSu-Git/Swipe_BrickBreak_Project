@@ -84,8 +84,8 @@ namespace Bird.Ball
                 blockManager.DamageBlock(targetIndex, 1);
             }
             
-            Vector3 leftWallPos = blockManager.GetWorldPosition(hitGridIndex.y, 0);
-            if (vfxManager != null) vfxManager.PlayVFX(VFXType.Laser, leftWallPos);
+            Vector3 centerPos = blockManager.GetWorldPosition(hitGridIndex.y, hitGridIndex.x);
+            if (vfxManager != null) vfxManager.PlayVFX(VFXType.Laser, centerPos);
         }
     }
 }
