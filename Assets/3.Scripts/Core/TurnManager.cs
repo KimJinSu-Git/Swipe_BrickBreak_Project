@@ -36,7 +36,9 @@ namespace Bird.Core
         private Vector2 _currentAimDirection;
         
         public event Action<int> OnTurnChanged;
+        public event Action<GameState> OnGameStateChanged;
         public GameState CurrentState => currentState;
+        public int CurrentTurn => currentTurn;
 
         private void Awake() => ChangeState(GameState.Idle);
 
@@ -70,6 +72,8 @@ namespace Bird.Core
         public void ChangeState(GameState newState)
         {
             currentState = newState;
+            
+            OnGameStateChanged?.Invoke(newState);
 
             switch (currentState)
             {

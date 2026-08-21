@@ -10,14 +10,20 @@ namespace Bird.UI
     {
         [Header("Slot Settings")] 
         [SerializeField] private Image topColorBg;
+        [SerializeField] private Image ballImageUI;
         [SerializeField] private TextMeshProUGUI textRank;
         [SerializeField] private TextMeshProUGUI textName;
 
-        public void SetData(BallType type)
+        public void SetData(BallType type, Sprite ballSprite)
         {
             textName.text = GetNameText(type);
             textRank.text = GetRankText(type);
             topColorBg.color = GetRankColor(type);
+            
+            if (ballImageUI != null && ballSprite != null)
+            {
+                ballImageUI.sprite = ballSprite;
+            }
         }
 
         private string GetNameText(BallType type) => type switch

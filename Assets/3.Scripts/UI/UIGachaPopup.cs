@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Bird.Ball;
 using Bird.OutGame;
@@ -8,10 +9,30 @@ namespace Bird.UI
 {
     public class UIGachaPopup : MonoBehaviour
     {
+        [Serializable]
+        public struct GachaSpriteMapping
+        {
+            public BallType type;
+            public Sprite sprite;
+        }
+        
+        [Header("Gacha UI Settings")]
         [SerializeField] private GameObject popupRoot;
         [SerializeField] private Button confirmButton;
         [SerializeField] private List<GachaResultSlot> slotPool;
         
+        [SerializeField] private List<GachaSpriteMapping> spriteMappings;
+        
+        private Dictionary<BallType, Sprite> _spriteDict = new Dictionary<BallType, Sprite>();
+
+        private void Awake()
+        {
+            foreach (var mapping in spriteMappings)
+            {
+                _spriteDict[mapping.type] = mapping.sprite;
+            }
+        }
+
         private void Start()
         {
             popupRoot.SetActive(false);
@@ -34,7 +55,11 @@ namespace Bird.UI
             {
                 if (i < results.Count)
                 {
-                    slotPool[i].SetData(results[i]);
+                    BallType resultType = results[i];
+                    
+                    _spriteDict.TryGetValue(resultType, out Sprite targetSprite);
+                    
+                    slotPool[i].SetData(resultType, targetSprite);
                     slotPool[i].gameObject.SetActive(true);
                 }
                 else

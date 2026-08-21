@@ -33,6 +33,9 @@ namespace Bird.UI
         [Header("UI Popups")] 
         [SerializeField] private UIGachaPopup gachaPopup;
         [SerializeField] private GachaManager gachaManager;
+
+        [Header("Skill Targeting UI")] 
+        [SerializeField] private GameObject skillTargetingPanel;
         
         private void Start()
         {
@@ -54,6 +57,8 @@ namespace Bird.UI
                 buttonSkillUse.onClick.AddListener(turnManager.OnSkillButtonClicked);
             }
             
+            if (turnManager != null) turnManager.OnGameStateChanged += UpdateGameStateUI;
+            
             InitializeUI();
         }
 
@@ -66,6 +71,7 @@ namespace Bird.UI
             UpdateComboUI(0);
             UpdateSkillGaugeUI(0, 100);
             UpdateSkillLevelUI(1);
+            UpdateGameStateUI(GameState.Idle);
         }
 
         private void OnDestroy()
@@ -83,6 +89,8 @@ namespace Bird.UI
                 skillManager.OnLevelChanged -= UpdateSkillLevelUI;
             }
             if (buttonSkillUse != null) buttonSkillUse.onClick.RemoveAllListeners();
+            
+            if (turnManager != null) turnManager.OnGameStateChanged -= UpdateGameStateUI;
         }
 
         private void UpdateTurnUI(int turn) => textTurn.text = turn.ToString();
@@ -105,6 +113,14 @@ namespace Bird.UI
         private void UpdateSkillLevelUI(int level)
         {
             if (textSkillLevel != null) textSkillLevel.text = $"Level.{level}";
+        }
+        
+        private void UpdateGameStateUI(GameState state)
+        {
+            if (skillTargetingPanel != null)
+            {
+                skillTargetingPanel.SetActive(state == GameState.SkillTargeting);
+            }
         }
     }
 }

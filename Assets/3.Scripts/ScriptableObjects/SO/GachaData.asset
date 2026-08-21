@@ -16,17 +16,17 @@ MonoBehaviour:
   fivePullCost: 200
   normalRates:
   - ballType: 0
-    weight: 80
+    weight: 90
+  - ballType: 1
+    weight: 2.5
+  - ballType: 2
+    weight: 5
+  - ballType: 3
+    weight: 2.5
+  pityRates:
   - ballType: 1
     weight: 10
   - ballType: 2
-    weight: 5
+    weight: 80
   - ballType: 3
-    weight: 5
-  pityRates:
-  - ballType: 1
-    weight: 70
-  - ballType: 2
-    weight: 15
-  - ballType: 3
-    weight: 15
+    weight: 10
