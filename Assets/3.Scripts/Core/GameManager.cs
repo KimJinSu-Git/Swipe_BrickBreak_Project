@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Bird.Ball;
 using Bird.Data;
 using Bird.InGame;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 
 namespace Bird.Core
@@ -20,10 +22,61 @@ namespace Bird.Core
         [SerializeField] private ScoreManager scoreManager; // 점수 정보
         [SerializeField] private CoinManager coinManager; // 코인 정보
         [SerializeField] private SkillManager skillManager; // 스킬 게이지 정보
-        
+
+        private void Awake()
+        {
+            // 수직 동기화 끄기
+            QualitySettings.vSyncCount = 0;
+            
+            // 프레임 60으로 고정 (유니티 모바일 기본값인 30을 해제)
+            Application.targetFrameRate = 60;
+        }
+
         private async void Start()
         {
             await ResumeGameAsync();
+            
+            if (turnManager != null)
+            {
+                turnManager.OnGameStateChanged += HandleGameStateChanged;
+                turnManager.OnGameOver += HandleGameOver;
+            }
+        }
+        
+        private void OnDestroy()
+        {
+            if (turnManager != null)
+            {
+                turnManager.OnGameStateChanged -= HandleGameStateChanged;
+                turnManager.OnGameOver -= HandleGameOver;
+            }
+        }
+        
+        private void HandleGameStateChanged(GameState newState)
+        {
+            if (newState == GameState.Idle)
+            {
+                Debug.Log("[GameManager] 새 턴 시작 (Idle) -> 체크포인트 자동 저장");
+                SaveCurrentGame();
+            }
+        }
+        
+        private void HandleGameOver()
+        {
+            Debug.Log("[GameManager] 게임 오버 감지 -> 세이브 파일 영구 삭제");
+            if (saveManager != null)
+            {
+                saveManager.DeleteSaveData();
+            }
+        }
+        
+        public void RestartGame()
+        {
+            Debug.Log("[GameManager] 게임 재시작 로직 가동: 세이브 파일 삭제 및 씬 재로드");
+            
+            if (saveManager != null) saveManager.DeleteSaveData();
+
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
         
         private async Task ResumeGameAsync()
@@ -61,6 +114,12 @@ namespace Bird.Core
         {
             if (saveManager == null) return;
 
+            if (turnManager != null && (turnManager.CurrentState == GameState.Shooting || turnManager.CurrentState == GameState.TurnEnd) || blockManager.IsGameOverFlag)
+            {
+                Debug.LogWarning("[GameManager] 어뷰징 방지: 턴 진행 중에는 진행 상황을 저장하지 않습니다.");
+                return;
+            }
+            
             SaveData data = new SaveData();
 
             // 기본 진행 정보 및 재화/점수 수집

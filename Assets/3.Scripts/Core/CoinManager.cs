@@ -5,14 +5,17 @@ namespace Bird.Core
 {
     public class CoinManager : MonoBehaviour
     {
-        [SerializeField] private int currentCoins = 0;
+        [SerializeField] private int currentCoins = 400;
 
         public event Action<int> OnCoinChanged;
         public event Action<int> OnCoinEarned;
         
         public int CurrentCoins => currentCoins;
-        
-        private void Start() => OnCoinChanged?.Invoke(currentCoins);
+
+        private void Start()
+        {
+            OnCoinChanged?.Invoke(currentCoins);
+        }
 
         public bool TrySpendCoins(int amount)
         {

@@ -48,6 +48,7 @@ namespace Bird.InGame
         private Dictionary<BlockType, Queue<GameObject>> _blockPools = new Dictionary<BlockType, Queue<GameObject>>();
         private GameObject[,] _blockGrid;
         private List<int> _availableColumns = new List<int>();
+        private List<KeyValuePair<Block, Vector2Int>> _blocksToProcessCache = new List<KeyValuePair<Block, Vector2Int>>();
         
         public bool IsGameOverFlag { get; private set; }
         
@@ -125,6 +126,11 @@ namespace Bird.InGame
                 {
                     _blockGrid[gridIndex.y, gridIndex.x] = null;
                     
+                    if (vfxManager != null)
+                    {
+                        vfxManager.PlayVFX(VFXType.BlockDestroy, targetBlockObj.transform.position);
+                    }
+                    
                     OnBlockDestroyed?.Invoke();
                     
                     if (comboManager != null)
@@ -184,10 +190,10 @@ namespace Bird.InGame
 
         public void ExecuteTurnEndEffects()
         {
+            _blocksToProcessCache.Clear();
+            
             for (int row = 0; row < maxRows; row++)
             {
-                int currentMultiplyCount = 0;
-
                 for (int col = 0; col < maxColumns; col++)
                 {
                     GameObject blockObj = _blockGrid[row, col];
@@ -195,10 +201,15 @@ namespace Bird.InGame
                     {
                         if (blockObj.TryGetComponent(out Block block))
                         {
-                            block.OnTurnEnd(this, new Vector2Int(col, row));
+                            _blocksToProcessCache.Add(new KeyValuePair<Block, Vector2Int>(block, new Vector2Int(col, row)));
                         }
                     }
                 }
+            }
+            
+            foreach (var kvp in _blocksToProcessCache)
+            {
+                kvp.Key.OnTurnEnd(this, kvp.Value);
             }
         }
 

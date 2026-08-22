@@ -7,7 +7,7 @@ namespace Bird.Core
 {
     public enum VFXType
     {
-        BlockDestroy_Normal, 
+        BlockDestroy, 
         Explosion,
         Cross,
         Laser,

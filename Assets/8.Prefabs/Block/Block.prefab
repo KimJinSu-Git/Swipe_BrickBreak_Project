@@ -189,7 +189,7 @@ GameObject:
   - component: {fileID: 3396599465633649928}
   - component: {fileID: 8088364417311308773}
   - component: {fileID: 6161874511032154069}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Block
   m_TagString: Block
   m_Icon: {fileID: 0}
@@ -329,4 +329,4 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
+  m_EdgeRadius: 0.02

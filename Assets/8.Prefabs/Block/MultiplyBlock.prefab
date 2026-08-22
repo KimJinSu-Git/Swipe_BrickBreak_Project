@@ -189,7 +189,7 @@ GameObject:
   - component: {fileID: 3396599465633649928}
   - component: {fileID: 6161874511032154069}
   - component: {fileID: 4123755210985588276}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: MultiplyBlock
   m_TagString: Block
   m_Icon: {fileID: 0}
@@ -312,7 +312,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
-  m_EdgeRadius: 0
+  m_EdgeRadius: 0.02
 --- !u!114 &4123755210985588276
 MonoBehaviour:
   m_ObjectHideFlags: 0

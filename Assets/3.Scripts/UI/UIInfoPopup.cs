@@ -37,7 +37,6 @@ namespace Bird.UI
 
         [Header("UI Dependencies")]
         [SerializeField] private GameObject popupRoot;
-        [SerializeField] private Button buttonConfirm;
         [SerializeField] private Button buttonCloseBg;
         
         [Header("Tab System")]
@@ -56,7 +55,6 @@ namespace Bird.UI
         {
             popupRoot.SetActive(false);
 
-            if (buttonConfirm != null) buttonConfirm.onClick.AddListener(ClosePopup);
             if (buttonCloseBg != null) buttonCloseBg.onClick.AddListener(ClosePopup);
 
             if (buttonTabBall != null) buttonTabBall.onClick.AddListener(ShowBallTab);

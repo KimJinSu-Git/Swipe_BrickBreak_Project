@@ -35,6 +35,7 @@ namespace Bird.Core
         private Vector2 _dragStartPosition;
         private Vector2 _currentAimDirection;
         
+        public event Action OnGameOver;
         public event Action<int> OnTurnChanged;
         public event Action<GameState> OnGameStateChanged;
         public GameState CurrentState => currentState;
@@ -137,6 +138,7 @@ namespace Bird.Core
             if (blockManager.IsGameOverFlag)
             {
                 Debug.Log("게임 오버!");
+                OnGameOver?.Invoke();
                 // TODO: 팝업 UI 재시작 버튼 연동
             }
             else
@@ -208,18 +210,23 @@ namespace Bird.Core
                 
                 // 드래그 벡터 계산 (시작점 - 현재점 = 당긴 반대 방향)
                 Vector2 direction = _dragStartPosition - currentDragPosition;
-                // 터치 직후 0으로 나누기가 발생하는 것을 방지하는 방어 코드
-                if (direction.sqrMagnitude < 0.01f) return; 
-                direction.Normalize();
-
-                // 각도 변환 및 제한 (Clamp)
-                // Mathf.Atan2를 사용하여 현재 방향을 각도(-180도 ~ 180도)로 변환합니다.
-                float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-                // 공이 아래로 향하거나(음수 각도), 너무 평행하게 누워서 무한 바운스 되는 것을 방지합니다.
-                angle = Mathf.Clamp(angle, 15f, 165f);
                 
-                // 통제된 각도를 다시 삼각함수를 통해 방향(Vector2)으로 조립합니다.
-                _currentAimDirection = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
+                if (direction.sqrMagnitude < 0.01f) 
+                {
+                    _currentAimDirection = Vector2.up; 
+                }
+                else
+                {
+                    direction.Normalize();
+
+                    // 각도 변환 및 제한 (Clamp)
+                    float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+                    angle = Mathf.Clamp(angle, 15f, 165f);
+                    
+                    // 통제된 각도를 다시 방향(Vector2)으로 조립합니다
+                    _currentAimDirection = new Vector2(Mathf.Cos(angle * Mathf.Deg2Rad), Mathf.Sin(angle * Mathf.Deg2Rad));
+                }
+                
                 trajectoryRenderer.ShowLine();
                 trajectoryRenderer.DrawTrajectory(ballSpawnPosition, _currentAimDirection);
             }
