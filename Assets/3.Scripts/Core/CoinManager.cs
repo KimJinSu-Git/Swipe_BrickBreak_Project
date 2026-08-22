@@ -8,6 +8,9 @@ namespace Bird.Core
         [SerializeField] private int currentCoins = 0;
 
         public event Action<int> OnCoinChanged;
+        public event Action<int> OnCoinEarned;
+        
+        public int CurrentCoins => currentCoins;
         
         private void Start() => OnCoinChanged?.Invoke(currentCoins);
 
@@ -26,6 +29,14 @@ namespace Bird.Core
         public void AddCoins(int amount)
         {
             currentCoins += amount;
+            
+            OnCoinEarned?.Invoke(amount);
+            OnCoinChanged?.Invoke(currentCoins);
+        }
+        
+        public void RestoreCoin(int savedCoin)
+        {
+            currentCoins = savedCoin;
             OnCoinChanged?.Invoke(currentCoins);
         }
     }

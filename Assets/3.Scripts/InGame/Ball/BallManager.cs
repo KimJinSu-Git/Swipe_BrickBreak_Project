@@ -206,5 +206,12 @@ namespace Bird.Ball
                     break;
             }
         }
+        
+        public void RestoreDeck(List<BallType> savedDeck)
+        {
+            playerDeck.Clear();
+            playerDeck.AddRange(savedDeck);
+            ResetBallCountUI();
+        }
     }
 }

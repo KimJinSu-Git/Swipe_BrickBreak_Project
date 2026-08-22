@@ -97,7 +97,7 @@ namespace Bird.UI
         private void UpdateCoinUI(int coin) => textCoin.text = coin.ToString();
         private void UpdateBallCountUI(int count) => textBallCount.text = $"x{count}";
         private void UpdateScoreUI(int score) => textScore.text = score.ToString();
-        private void UpdateComboUI(int combo) => comboScore.text = $"x{combo}";
+        private void UpdateComboUI(int combo) => comboScore.text = $"{combo} 콤보";
         
         private void UpdateSkillGaugeUI(float current, float max)
         {

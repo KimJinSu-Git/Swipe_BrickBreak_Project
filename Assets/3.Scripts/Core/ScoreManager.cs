@@ -31,6 +31,12 @@ namespace Bird.Core
             
             OnScoreChanged?.Invoke(currentScore);
         }
+        
+        public void RestoreScore(int savedScore)
+        {
+            currentScore = savedScore;
+            OnScoreChanged?.Invoke(currentScore);
+        }
     }
 }
 

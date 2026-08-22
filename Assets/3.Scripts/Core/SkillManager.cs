@@ -18,6 +18,8 @@ namespace Bird.Core
         
         public event Action<float, float> OnGaugeChanged;
         public event Action<int> OnLevelChanged;
+        
+        public float CurrentGauge => currentGauge;
 
         public bool IsSkillReady => currentGauge >= skillData.MaxGauge;
 

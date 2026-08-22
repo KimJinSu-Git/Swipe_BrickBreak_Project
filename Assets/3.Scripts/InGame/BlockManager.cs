@@ -53,6 +53,9 @@ namespace Bird.InGame
         
         public int MaxColumns => maxColumns;
         public int MaxRows => maxRows;
+        
+        public event Action OnBlockDestroyed;
+        public event Action<int> OnDamageDealt;
 
         private void Awake()
         {
@@ -113,11 +116,17 @@ namespace Bird.InGame
                 if (comboManager != null) comboManager.AddCombo();
                 
                 int earnedScore = targetBlock.TakeDamage(damage);
+                
+                OnDamageDealt?.Invoke(damage);
+                
                 bool isDestroyed = targetBlock.CurrentHp <= 0;
 
                 if (isDestroyed)
                 {
                     _blockGrid[gridIndex.y, gridIndex.x] = null;
+                    
+                    OnBlockDestroyed?.Invoke();
+                    
                     if (comboManager != null)
                     {
                         comboManager.AddPendingCoin(20);
@@ -389,6 +398,55 @@ namespace Bird.InGame
             }
             
             return false;
+        }
+        
+        // -- Save & Load 관련 로직
+        
+        public List<BlockSaveData> GetBoardSaveData()
+        {
+            List<BlockSaveData> boardData = new List<BlockSaveData>();
+            for (int y = 0; y < maxRows; y++)
+            {
+                for (int x = 0; x < maxColumns; x++)
+                {
+                    GameObject blockObj = _blockGrid[y, x];
+                    
+                    if (blockObj != null && blockObj.activeInHierarchy && blockObj.TryGetComponent(out Block block))
+                    {
+                        boardData.Add(new BlockSaveData { gridX = x, gridY = y, type = block.Type, hp = block.CurrentHp });
+                    }
+                }
+            }
+            return boardData;
+        }
+        
+        public void RestoreBoardState(List<BlockSaveData> savedBoard)
+        {
+            // 기존에 깔려있던 블록이 있다면 전부 초기화
+            for (int y = 0; y < MaxRows; y++)
+            {
+                for (int x = 0; x < MaxColumns; x++)
+                {
+                    if (_blockGrid[y, x] != null)
+                    {
+                        ReturnBlockToPool(_blockGrid[y, x]);
+                        _blockGrid[y, x] = null;
+                    }
+                }
+            }
+
+            // 저장된 데이터를 바탕으로 지정된 위치에 블록 스폰
+            foreach (var blockData in savedBoard)
+            {
+                // 인덱스 안전성 검사
+                if (blockData.gridX >= 0 && blockData.gridX < MaxColumns &&
+                    blockData.gridY >= 0 && blockData.gridY < MaxRows)
+                {
+                    // 저장된 HP와 타입 그대로 스폰합니다.
+                    SpawnBlock(blockData.gridY, blockData.gridX, blockData.hp, blockData.type);
+                }
+            }
+            Debug.Log($"[BlockManager] {savedBoard.Count}개의 블록 복구 완료!");
         }
     }
 }

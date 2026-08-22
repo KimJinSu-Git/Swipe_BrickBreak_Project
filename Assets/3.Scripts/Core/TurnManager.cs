@@ -248,5 +248,11 @@ namespace Bird.Core
                 ChangeState(GameState.SkillTargeting);
             }
         }
+        
+        public void RestoreTurn(int savedTurn)
+        {
+            currentTurn = savedTurn;
+            OnTurnChanged?.Invoke(currentTurn);
+        }
     }
 }
